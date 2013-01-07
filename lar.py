@@ -318,8 +318,7 @@ if __name__ == "__main__" and True:
 
 #------------------------------------------------------------------
 def csrCreateTotalChain(kn):
-    numerals = range(kn)
-    csrMat = csrCreateFromCoo(cooCreateFromBrc(TRANS([numerals])))
+    csrMat = csrCreateFromCoo(cooCreateFromBrc(TRANS([kn*[0]])))
     return csrMat
 
 if __name__ == "__main__" and True:
@@ -327,7 +326,6 @@ if __name__ == "__main__" and True:
     csrMat = csrCreateTotalChain(csrGetNumberOfRows(csrFV))
     print "\ncsrCreateTotalChain(csrGetNumberOfRows(csrFV)) =\n", \
         csrToMatrixRepresentation(csrMat)
-
 
 #------------------------------------------------------------------
 def csrCreateUnitChain(kn,k):
@@ -705,8 +703,8 @@ if __name__ == "__main__" and True:
     VIEW(MKPOL([model[0], AA(AA(lambda k: k+1))(model[1]), None]))
     model = larFacets(model)
     VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
-    model = larFacets(model,dim=2)
-    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+#    model = larFacets(model,dim=2)
+#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
     
     # 2D & 3D SIMPLICIAL example: OK
     V0 = [[]]
@@ -719,8 +717,8 @@ if __name__ == "__main__" and True:
     VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
     skel = larFacets(model)
     VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
-    skel = larFacets(skel,2)
-    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
+#    skel = larFacets(skel,2)
+#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
     
     # 1D & 2D & 3D CUBOIDAL example: OK
     geom_0,topol_0 = [[0.],[1.],[2.],[3.],[4.]],[[0,1],[1,2],[3,4]]
@@ -736,8 +734,8 @@ if __name__ == "__main__" and True:
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cubes)))
     skel = larFacets(cubes)
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
-    skel = larFacets(skel,2)
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+#    skel = larFacets(skel,2)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
     
     
     # 1D & 2D & 3D CUBOIDAL example: OK
@@ -747,8 +745,8 @@ if __name__ == "__main__" and True:
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cube)))
     skel = larFacets(cube)
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
-    skel = larFacets(skel,2)
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+#    skel = larFacets(skel,2)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
     
     
     # 3D MIXED (general POLYTOPAL) example:  error to check !!
@@ -760,8 +758,8 @@ if __name__ == "__main__" and True:
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(wedges)))
     skel = larFacets(wedges)
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
-    skel = larFacets(skel,2)                           # => KO !!  (troppe 1-facce)
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+#    skel = larFacets(skel,2)                           # => KO !!  (troppe 1-facce)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
     
     
     
@@ -774,8 +772,8 @@ if __name__ == "__main__" and True:
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(wedge)))
     skel2D = larFacets(wedge)
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel2D)))
-    skel1D = larFacets(skel2D,2)                       # => KO !!  (troppe 1-facce)
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel1D)))
+#    skel1D = larFacets(skel2D,2)                       # => KO !!  (troppe 1-facce)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel1D)))
 
 
 
