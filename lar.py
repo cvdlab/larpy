@@ -92,8 +92,14 @@ if __name__ == "__main__" and True:
 
 
 #------------------------------------------------------------------
-def csrCreate(ListOfListOfInt):
-    return csrCreateFromCoo(cooCreateFromBrc(ListOfListOfInt))
+def csrCreate(BRCm,shape=(0,0)):
+    if shape == (0,0):
+        return csrCreateFromCoo(cooCreateFromBrc(BRCm))
+    else:
+        CSRm = scipy.sparse.csr_matrix(shape)
+        for i,j,v in cooCreateFromBrc(BRCm):
+            CSRm[i,j] = v
+        return CSRm
 
 if __name__ == "__main__" and True:
     print "\n>>> csrCreateFromCoo"
@@ -256,7 +262,10 @@ if __name__ == "__main__" and True:
 
 #------------------------------------------------------------------
 def csrProduct(CSRm1,CSRm2):
+    print "\nCSRm1 =\n", csrToMatrixRepresentation(CSRm1)
+    print "\nCSRm2 =\n", csrToMatrixRepresentation(CSRm2)
     CSRm = CSRm1 * CSRm2
+    print "\nCSRm =\n", csrToMatrixRepresentation(CSRm)
     return CSRm
 
 if __name__ == "__main__" and True:
@@ -550,16 +559,14 @@ def setup(model,dim):
     csrAdjSquareMat = csrPredFilter(csrAdjSquareMat, GE(dim)) # ? HOWTODO ?
     facets = []
     pointsOfFirstCell = [V[k] for k in cells[0]]
-    isFacet = mappingOracle(pointsOfFirstCell)
-    return V,cells,csr,csrAdjSquareMat,facets,isFacet
+    return V,cells,csr,csrAdjSquareMat,facets
 
 def larFacets(model,dim=3):
-    V,cells,csr,csrAdjSquareMat,facets,isFacet = setup(model,dim)
+    V,cells,csr,csrAdjSquareMat,facets = setup(model,dim)
     print "\ncsrAdjSquareMat =\n",csrToMatrixRepresentation(csrAdjSquareMat)
-    print "\nisFacet =",isFacet
     # for each input cell i
+    cellFacets = []
     for i in range(len(cells)):
-        cellFacets = []
         adjCells = csrAdjSquareMat[i].tocoo()
         cell1 = csr[i].tocoo().col
         pairs = zip(adjCells.col,adjCells.data)
@@ -568,13 +575,11 @@ def larFacets(model,dim=3):
                 cell2 = csr[j].tocoo().col
                 cell = list(set(cell1).intersection(cell2))
                 cellFacets.append(sorted(cell))
-                cellFacets.append(sorted(list(set(cell1).difference(cell))))
-                cellFacets.append(sorted(list(set(cell2).difference(cell))))
-        cellFacets = [facet for facet in cellFacets
-                      if set(facet).issubset(cells[i]) and len(facet)>=dim ] # 3? ... !!!
-        print "\ncellFacets =",cellFacets
+    print "\ncellFacets =",cellFacets
+    return V,cellFacets
 
 
+if __name__ == "__main__" and True:
     # 1D & 2D & 3D CUBOIDAL example: OK
     geom_0,topol_0 = [[0.],[1.],[2.],[3.],[4.]],[[0,1],[1,2],[2,3]]
     geom_1,topol_1 = [[0.],[1.],[2.]], [[0,1],[1,2]]
