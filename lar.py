@@ -543,30 +543,6 @@ if __name__ == "__main__" and True:
 #------------------------------------------------------------------
 # extraction of facets of a cell complex
 
-def prepKey (args): return "["+", ".join(args)+"]"
-
-def fixedPrec(value):
-	if value>0: ret = '%0.1f'% (int(math.floor(value*1E1))/1E1)
-	else: ret = '%0.1f'% -(int(math.floor(-value*1E1))/1E1)
-	if ret == '-0.0': ret = '0.0'
-	return ret
-
-def code (vect): return prepKey(AA(COMP([str,fixedPrec]))(vect))
-
-def mappingOracle(cellPoints):
-    print "\ncellPoints =",cellPoints
-    homPoints = mat([AR([p,1.0]) for p in cellPoints])
-    print "\nhomPoints =\n",homPoints
-    singularValues = eval(code(scipy.linalg.svdvals(homPoints)))
-    print "\nsingularValues =",singularValues
-    rank = len([val for val in singularValues if val!=0.0])
-    print "\nrank =",rank
-    codimension = homPoints.shape[1]-rank
-    print "\ncodimension =",codimension
-    if codimension==0: return False
-    elif codimension==1: return True
-    else: raise Exception('codimension error')
-
 def setup(model,dim):
     V, cells = model
     csr = csrCreate(cells)
@@ -576,77 +552,6 @@ def setup(model,dim):
     pointsOfFirstCell = [V[k] for k in cells[0]]
     isFacet = mappingOracle(pointsOfFirstCell)
     return V,cells,csr,csrAdjSquareMat,facets,isFacet
-
-# predicate to test if a boundary representation is closed
-def isCellClosed(cellFacets):
-    # works for any type of cell (to proof)
-    facets = AA(AA(lambda k: k+1))(cellFacets)
-    # return False
-    if facets != []:
-        theSum = sum(set(CAT(facets)))
-        return (3*theSum == sum(CAT(facets))) #or (2*theSum == sum(CAT(facets)))
-    # ? HOWTODO ?
-    else: return False
-
-def cellBoundaryFacets(points):
-    print "\npoints =",points
-    triangles = Delaunay(points).convex_hull
-    print "\n>>>triangles =",triangles
-    if len(points[0])==2: return triangles
-    centroid = centre(points)
-    print "\n>>>centroid =",centroid
-    points = [VECTDIFF([p,centroid]) for p in points]
-    print "\n>>>points =",points
-    tuples = [[points[k] for k in t] for t in triangles]
-    print "\n>>>tuples =",tuples
-    triangles = [tria if det(t) >= 0 else [tria[1]]+[tria[0]]+tria[2:]
-                 for t,tria in zip(tuples,triangles.tolist())]
-    print "\n>>>triangles =",triangles
-    tuples = [[points[k] for k in t] for t in triangles]
-    print "\n>>>tuples =",tuples
-    normals = [ VECTPROD([ VECTDIFF([p,triple[0]]) for p in triple[1:] ]) for triple in tuples ]
-    print "\n>>>normals =",normals
-    normals = [code(UNITVECT(normal)) for normal in normals]
-    print "\n>>>normals =",normals
-    
-    facets = collections.OrderedDict()
-    print "\n>>>facets =",facets
-    for triangle,normal in TRANS([triangles,normals]):
-        if facets.has_key(normal):
-            facet = facets[normal]
-            facets[normal] = facet.union(triangle)
-        else:
-            facets[normal] = set(triangle)
-    print "\n>>>facets =",facets
-    return AA(list)(facets.values())
-
-def centre(points):
-    n = float(len(points))
-    return AA(lambda coord: sum(coord)/n)(TRANS(points))
-
-def mapping(cellPoints):
-    # TODO
-    m = len(cellPoints[0])
-    vectors = mat([VECTDIFF([p,cellPoints[0]]) for p in cellPoints[1:m]])
-    vectors = vectors.I.tolist()
-    vectors = AA(eval)(AA(code)(vectors))
-    return vectors
-
-def mapping(points):
-    # TODO
-    m = len(points[0])
-    print "\nm =",m
-    print "\npoints =",points
-    matrix = mat([VECTDIFF([p,points[0]]) for p in points[1:m+1]])
-    print "\nmatrix =",matrix
-    vectors = matrix
-    if det(vectors) != 0.0:
-        vects = mat([VECTDIFF([p,points[0]]) for p in points[1:]])
-        print "\nvects =",vects
-        vectors = AA(eval)(AA(code)(matrix * vects.T))
-        print "\nvectors =",vectors
-    return vectors
-
 
 def larFacets(model,dim=3):
     V,cells,csr,csrAdjSquareMat,facets,isFacet = setup(model,dim)
@@ -668,60 +573,10 @@ def larFacets(model,dim=3):
         cellFacets = [facet for facet in cellFacets
                       if set(facet).issubset(cells[i]) and len(facet)>=dim ] # 3? ... !!!
         print "\ncellFacets =",cellFacets
-        isClosed = isCellClosed(cellFacets)
-        print "\nisClosed =",isClosed
-        if not isClosed:
-            cellPoints = [V[k] for k in cells[i]]
-            if isFacet: cellPoints = mapping(cellPoints)
-            #facetAddrs = Delaunay(cellPoints).convex_hull
-            facetAddrs = cellBoundaryFacets(cellPoints)
-            print "\n<<<>>>facetAddrs =\n", facetAddrs
-            simplices = [sorted([cells[i][item] for item in pair])
-                         for pair in facetAddrs]
-            simplexLength = len(simplices[0])
-            for simplex in simplices:
-                subset = False
-                for cell in cellFacets:
-                    if set(simplex).issubset(cell): subset = True
-                if not subset: cellFacets += [simplex]
-        facets += cellFacets
-        facets = sorted(facets)
-        facets = [facet for k,facet in enumerate(facets[:-1])if facet!=facets[k+1]] + [facets[-1]]
-    return V,[face for face in facets]# if len(face) >= simplexLength]
 
 
-if __name__ == "__main__" and True:
-    print "\n>>> larFacetComputing"
-    
-    # 2D & 3D SIMPLICIAL example: OK
-    V = [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]]
-    FV = [[0,1,3],[1,2,4],[2,4,5],[3,4,6],[4,6,7],[5,7,8]]
-    VIEW(MKPOL([V, AA(AA(lambda k: k+1))(FV), None]))
-    model = larFacets((V,FV))
-    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
-    model = larExtrude((V,FV),1*[1])
-    VIEW(MKPOL([model[0], AA(AA(lambda k: k+1))(model[1]), None]))
-    model = larFacets(model)
-    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
-#    model = larFacets(model,dim=2)
-#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
-    
-    # 2D & 3D SIMPLICIAL example: OK
-    V0 = [[]]
-    CV0 = [[0]]
-    model = larExtrude((V0,CV0),2*[1,-1,1])
-    model = larExtrude(model,2*[1,-1,1])
-    skel = larFacets(model)
-    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
-    model = larExtrude(model,1*[1,-1,1])
-    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
-    skel = larFacets(model)
-    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
-#    skel = larFacets(skel,2)
-#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
-    
     # 1D & 2D & 3D CUBOIDAL example: OK
-    geom_0,topol_0 = [[0.],[1.],[2.],[3.],[4.]],[[0,1],[1,2],[3,4]]
+    geom_0,topol_0 = [[0.],[1.],[2.],[3.],[4.]],[[0,1],[1,2],[2,3]]
     geom_1,topol_1 = [[0.],[1.],[2.]], [[0,1],[1,2]]
     mod_0 = (geom_0,topol_0)
     mod_1 = (geom_1,topol_1)
@@ -736,46 +591,243 @@ if __name__ == "__main__" and True:
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
 #    skel = larFacets(skel,2)
 #    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
-    
-    
-    # 1D & 2D & 3D CUBOIDAL example: OK
-    V = [[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]]
-    FV = [[0,1,2,3,4,5,6,7]]
-    cube = (V,FV)
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cube)))
-    skel = larFacets(cube)
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
-#    skel = larFacets(skel,2)
-#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
-    
-    
-    # 3D MIXED (general POLYTOPAL) example:  error to check !!
-    geom_2 = [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]]
-    topol_2 = [[0, 1, 3], [1, 2, 4], [1, 3, 4], [2, 4, 5]]
-    segments = mod_1
-    triangles = (geom_2,topol_2)
-    wedges = larProduct([triangles,segments])
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(wedges)))
-    skel = larFacets(wedges)
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
-#    skel = larFacets(skel,2)                           # => KO !!  (troppe 1-facce)
-#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
-    
-    
-    
-    # 3D MIXED (general POLYTOPAL) example:  error to check !!
-    geom = [[0, 0], [1, 0], [0, 1], [1, 1]]
-    topol = [[0, 1, 2], [1, 2, 3]]
-    segment = [[0.],[1.]], [[0,1]]
-    triangle = (geom,topol)
-    wedge = larProduct([triangle,segment])
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(wedge)))
-    skel2D = larFacets(wedge)
-    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel2D)))
-#    skel1D = larFacets(skel2D,2)                       # => KO !!  (troppe 1-facce)
-#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel1D)))
+
+#------------------------------------------------------------------
 
 
+#def prepKey (args): return "["+", ".join(args)+"]"
+#
+#def fixedPrec(value):
+#	if value>0: ret = '%0.1f'% (int(math.floor(value*1E1))/1E1)
+#	else: ret = '%0.1f'% -(int(math.floor(-value*1E1))/1E1)
+#	if ret == '-0.0': ret = '0.0'
+#	return ret
+#
+#def code (vect): return prepKey(AA(COMP([str,fixedPrec]))(vect))
+#
+#def mappingOracle(cellPoints):
+#    print "\ncellPoints =",cellPoints
+#    homPoints = mat([AR([p,1.0]) for p in cellPoints])
+#    print "\nhomPoints =\n",homPoints
+#    singularValues = eval(code(scipy.linalg.svdvals(homPoints)))
+#    print "\nsingularValues =",singularValues
+#    rank = len([val for val in singularValues if val!=0.0])
+#    print "\nrank =",rank
+#    codimension = homPoints.shape[1]-rank
+#    print "\ncodimension =",codimension
+#    if codimension==0: return False
+#    elif codimension==1: return True
+#    else: raise Exception('codimension error')
+#
+#def setup(model,dim):
+#    V, cells = model
+#    csr = csrCreate(cells)
+#    csrAdjSquareMat = larCellAdjacencies(csr)
+#    csrAdjSquareMat = csrPredFilter(csrAdjSquareMat, GE(dim)) # ? HOWTODO ?
+#    facets = []
+#    pointsOfFirstCell = [V[k] for k in cells[0]]
+#    isFacet = mappingOracle(pointsOfFirstCell)
+#    return V,cells,csr,csrAdjSquareMat,facets,isFacet
+#
+## predicate to test if a boundary representation is closed
+#def isCellClosed(cellFacets):
+#    # works for any type of cell (to proof)
+#    facets = AA(AA(lambda k: k+1))(cellFacets)
+#    # return False
+#    if facets != []:
+#        theSum = sum(set(CAT(facets)))
+#        return (3*theSum == sum(CAT(facets))) #or (2*theSum == sum(CAT(facets)))
+#    # ? HOWTODO ?
+#    else: return False
+#
+#def cellBoundaryFacets(points):
+#    print "\npoints =",points
+#    triangles = Delaunay(points).convex_hull
+#    print "\n>>>triangles =",triangles
+#    if len(points[0])==2: return triangles
+#    centroid = centre(points)
+#    print "\n>>>centroid =",centroid
+#    points = [VECTDIFF([p,centroid]) for p in points]
+#    print "\n>>>points =",points
+#    tuples = [[points[k] for k in t] for t in triangles]
+#    print "\n>>>tuples =",tuples
+#    triangles = [tria if det(t) >= 0 else [tria[1]]+[tria[0]]+tria[2:]
+#                 for t,tria in zip(tuples,triangles.tolist())]
+#    print "\n>>>triangles =",triangles
+#    tuples = [[points[k] for k in t] for t in triangles]
+#    print "\n>>>tuples =",tuples
+#    normals = [ VECTPROD([ VECTDIFF([p,triple[0]]) for p in triple[1:] ]) for triple in tuples ]
+#    print "\n>>>normals =",normals
+#    normals = [code(UNITVECT(normal)) for normal in normals]
+#    print "\n>>>normals =",normals
+#    
+#    facets = collections.OrderedDict()
+#    print "\n>>>facets =",facets
+#    for triangle,normal in TRANS([triangles,normals]):
+#        if facets.has_key(normal):
+#            facet = facets[normal]
+#            facets[normal] = facet.union(triangle)
+#        else:
+#            facets[normal] = set(triangle)
+#    print "\n>>>facets =",facets
+#    return AA(list)(facets.values())
+#
+#def centre(points):
+#    n = float(len(points))
+#    return AA(lambda coord: sum(coord)/n)(TRANS(points))
+#
+#def mapping(cellPoints):
+#    # TODO
+#    m = len(cellPoints[0])
+#    vectors = mat([VECTDIFF([p,cellPoints[0]]) for p in cellPoints[1:m]])
+#    vectors = vectors.I.tolist()
+#    vectors = AA(eval)(AA(code)(vectors))
+#    return vectors
+#
+#def mapping(points):
+#    # TODO
+#    m = len(points[0])
+#    print "\nm =",m
+#    print "\npoints =",points
+#    matrix = mat([VECTDIFF([p,points[0]]) for p in points[1:m+1]])
+#    print "\nmatrix =",matrix
+#    vectors = matrix
+#    if det(vectors) != 0.0:
+#        vects = mat([VECTDIFF([p,points[0]]) for p in points[1:]])
+#        print "\nvects =",vects
+#        vectors = AA(eval)(AA(code)(matrix * vects.T))
+#        print "\nvectors =",vectors
+#    return vectors
+#
+#
+#def larFacets(model,dim=3):
+#    V,cells,csr,csrAdjSquareMat,facets,isFacet = setup(model,dim)
+#    print "\ncsrAdjSquareMat =\n",csrToMatrixRepresentation(csrAdjSquareMat)
+#    print "\nisFacet =",isFacet
+#    # for each input cell i
+#    for i in range(len(cells)):
+#        cellFacets = []
+#        adjCells = csrAdjSquareMat[i].tocoo()
+#        cell1 = csr[i].tocoo().col
+#        pairs = zip(adjCells.col,adjCells.data)
+#        for j,v in pairs:
+#            if (i!=j):
+#                cell2 = csr[j].tocoo().col
+#                cell = list(set(cell1).intersection(cell2))
+#                cellFacets.append(sorted(cell))
+#                cellFacets.append(sorted(list(set(cell1).difference(cell))))
+#                cellFacets.append(sorted(list(set(cell2).difference(cell))))
+#        cellFacets = [facet for facet in cellFacets
+#                      if set(facet).issubset(cells[i]) and len(facet)>=dim ] # 3? ... !!!
+#        print "\ncellFacets =",cellFacets
+#        isClosed = isCellClosed(cellFacets)
+#        print "\nisClosed =",isClosed
+#        if not isClosed:
+#            cellPoints = [V[k] for k in cells[i]]
+#            if isFacet: cellPoints = mapping(cellPoints)
+#            #facetAddrs = Delaunay(cellPoints).convex_hull
+#            facetAddrs = cellBoundaryFacets(cellPoints)
+#            print "\n<<<>>>facetAddrs =\n", facetAddrs
+#            simplices = [sorted([cells[i][item] for item in pair])
+#                         for pair in facetAddrs]
+#            simplexLength = len(simplices[0])
+#            for simplex in simplices:
+#                subset = False
+#                for cell in cellFacets:
+#                    if set(simplex).issubset(cell): subset = True
+#                if not subset: cellFacets += [simplex]
+#        facets += cellFacets
+#        facets = sorted(facets)
+#        facets = [facet for k,facet in enumerate(facets[:-1])if facet!=facets[k+1]] + [facets[-1]]
+#    return V,[face for face in facets]# if len(face) >= simplexLength]
+#
+#
+#if __name__ == "__main__" and True:
+#    print "\n>>> larFacetComputing"
+#    
+#    # 2D & 3D SIMPLICIAL example: OK
+#    V = [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]]
+#    FV = [[0,1,3],[1,2,4],[2,4,5],[3,4,6],[4,6,7],[5,7,8]]
+#    VIEW(MKPOL([V, AA(AA(lambda k: k+1))(FV), None]))
+#    model = larFacets((V,FV))
+#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+#    model = larExtrude((V,FV),1*[1])
+#    VIEW(MKPOL([model[0], AA(AA(lambda k: k+1))(model[1]), None]))
+#    model = larFacets(model)
+#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+##    model = larFacets(model,dim=2)
+##    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+#    
+#    # 2D & 3D SIMPLICIAL example: OK
+#    V0 = [[]]
+#    CV0 = [[0]]
+#    model = larExtrude((V0,CV0),2*[1,-1,1])
+#    model = larExtrude(model,2*[1,-1,1])
+#    skel = larFacets(model)
+#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
+#    model = larExtrude(model,1*[1,-1,1])
+#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+#    skel = larFacets(model)
+#    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
+##    skel = larFacets(skel,2)
+##    VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(skel)))
+#    
+#    # 1D & 2D & 3D CUBOIDAL example: OK
+#    geom_0,topol_0 = [[0.],[1.],[2.],[3.],[4.]],[[0,1],[1,2],[3,4]]
+#    geom_1,topol_1 = [[0.],[1.],[2.]], [[0,1],[1,2]]
+#    mod_0 = (geom_0,topol_0)
+#    mod_1 = (geom_1,topol_1)
+#    squares = larProduct([mod_0,mod_1])
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(squares)))
+#    skel = larFacets(squares,2)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+#    cubes = INSL(larProduct)([mod_0,mod_1,mod_0]) # ==
+#    cubes = larProduct([squares,mod_0])
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cubes)))
+#    skel = larFacets(cubes)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+##    skel = larFacets(skel,2)
+##    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+#    
+#    
+#    # 1D & 2D & 3D CUBOIDAL example: OK
+#    V = [[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]]
+#    FV = [[0,1,2,3,4,5,6,7]]
+#    cube = (V,FV)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cube)))
+#    skel = larFacets(cube)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+##    skel = larFacets(skel,2)
+##    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+#    
+#    
+#    # 3D MIXED (general POLYTOPAL) example:  error to check !!
+#    geom_2 = [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]]
+#    topol_2 = [[0, 1, 3], [1, 2, 4], [1, 3, 4], [2, 4, 5]]
+#    segments = mod_1
+#    triangles = (geom_2,topol_2)
+#    wedges = larProduct([triangles,segments])
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(wedges)))
+#    skel = larFacets(wedges)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+##    skel = larFacets(skel,2)                           # => KO !!  (troppe 1-facce)
+##    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel)))
+#    
+#    
+#    
+#    # 3D MIXED (general POLYTOPAL) example:  error to check !!
+#    geom = [[0, 0], [1, 0], [0, 1], [1, 1]]
+#    topol = [[0, 1, 2], [1, 2, 3]]
+#    segment = [[0.],[1.]], [[0,1]]
+#    triangle = (geom,topol)
+#    wedge = larProduct([triangle,segment])
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(wedge)))
+#    skel2D = larFacets(wedge)
+#    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel2D)))
+##    skel1D = larFacets(skel2D,2)                       # => KO !!  (troppe 1-facce)
+##    VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(skel1D)))
+#
+#
 
 #------------------------------------------------------------------
 #--application layer (demo)----------------------------------------
