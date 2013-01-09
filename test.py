@@ -40,10 +40,23 @@ print "\ncsrEE =\n", csrToMatrixRepresentation(csrEE)
 print "\ncsrFF =\n", csrToMatrixRepresentation(csrFF)
 
 facets = larFacets((V,FV),dim=2)
+#EV = facets[1]
+EV = [[1, 0, 3], [1, 2, 5], [1, 4], [3, 4], [3, 6, 7], [4, 5], [4, 7], [5, 8, 7]]
 VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(facets)))
 
+skel1D = AA(bezier)([[V[v] for v in EV[e]] for e,ev in enumerate(EV) ])
+VIEW(STRUCT(skel1D))
+skel1D = AA(POLYLINE)([[V[v] for v in EV[e]] for e,ev in enumerate(EV) ])
+VIEW(STRUCT(skel1D))
 
+csrVV = csrProduct(csrTranspose(csrFV),csrFV)
+print "\ncsrVV =\n", csrToMatrixRepresentation(csrVV)
 
+csrVV = csrProduct(csrTranspose(csrFV[:-1]),csrFV[:-1])
+print "\ncsrVV' =\n", csrToMatrixRepresentation(csrVV)
+
+csrVV = csrProduct(csrTranspose(csrEV),csrEV)
+print "\ncsrVV'' =\n", csrToMatrixRepresentation(csrVV)
 
 #print "\nfacets' =\n", facets[1]
 #print "\nboundary =\n", csrToMatrixRepresentation(larBoundary(FV,facets[1]))

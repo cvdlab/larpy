@@ -262,10 +262,7 @@ if __name__ == "__main__" and True:
 
 #------------------------------------------------------------------
 def csrProduct(CSRm1,CSRm2):
-    print "\nCSRm1 =\n", csrToMatrixRepresentation(CSRm1)
-    print "\nCSRm2 =\n", csrToMatrixRepresentation(CSRm2)
     CSRm = CSRm1 * CSRm2
-    print "\nCSRm =\n", csrToMatrixRepresentation(CSRm)
     return CSRm
 
 if __name__ == "__main__" and True:
