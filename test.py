@@ -79,13 +79,17 @@ def test (vmin, vmax):
 		return OR(AA(EQ)(CAT(AA(TRANS)([[vmin,v],[vmax,v]]))))
 	return test0
 
-outcell = [ k for k,v in enumerate(V) if test([0,0,0],[3,3,3])(V[k]) ]
 
 V = VERTS([range(4),range(4),range(4)])
+outcell = [ k for k,v in enumerate(V) if test([0,0,0],[3,3,3])(V[k]) ]
 FV = list(cubes[1]+[outcell])
 csrFV = csrCreate(FV)
 csrFF = larCellAdjacencies(csrFV)
 print "\ncsrFF =\n", csrToMatrixRepresentation(csrFF)
 facets = larFacets((V,FV),dim=3)
 VIEW(EXPLODE(2.5,2.5,2.5)(MKPOLS(facets)))
+# computation of "corner" 0-cells, i.e. incident to only one d-cell (d=maxdim)
+csrVV = csrProduct(csrTranspose(csrFV),csrFV)
+cornerVertices = [k for k in range(csrGetNumberOfRows(csrVV)) if csrVV[k,k]==8]
+print "\ncornerVertices =\n", cornerVertices
 
