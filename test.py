@@ -3,7 +3,6 @@ from lar import *
 
 def larFacets(model,dim=3):
     V,cells,csr,csrAdjSquareMat,facets = setup(model,dim)
-    print "\ncsrAdjSquareMat =\n",csrToMatrixRepresentation(csrAdjSquareMat)
     # for each input cell i
     cellFacets = []
     for i in range(len(cells)):
@@ -75,21 +74,37 @@ VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cubes)))
 
 
 def test (vmin, vmax):
+    # look whether v is on the boundary of the (multidimensional) interval [vmin,vmax]
 	def test0 (v):
 		return OR(AA(EQ)(CAT(AA(TRANS)([[vmin,v],[vmax,v]]))))
 	return test0
 
 
 V = VERTS([range(4),range(4),range(4)])
-outcell = [ k for k,v in enumerate(V) if test([0,0,0],[3,3,3])(V[k]) ]
-FV = list(cubes[1]+[outcell])
+outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
+FV = list(cubes[1]+[outverts])
 csrFV = csrCreate(FV)
 csrFF = larCellAdjacencies(csrFV)
 print "\ncsrFF =\n", csrToMatrixRepresentation(csrFF)
 facets = larFacets((V,FV),dim=3)
 VIEW(EXPLODE(2.5,2.5,2.5)(MKPOLS(facets)))
-# computation of "corner" 0-cells, i.e. incident to only one d-cell (d=maxdim)
-csrVV = csrProduct(csrTranspose(csrFV),csrFV)
-cornerVertices = [k for k in range(csrGetNumberOfRows(csrVV)) if csrVV[k,k]==8]
-print "\ncornerVertices =\n", cornerVertices
+
+# computation of "corner" 0-cells, i.e. incident to one/two/four d-cells (d=maxdim)
+csrVV = csrProduct(csrTranspose(csrFV[:-1]),csrFV[:-1])
+print "\ncsrVV =\n", csrToMatrixRepresentation(csrVV)
+vcorners = set([k for k,vert in enumerate(csrVV) if vert[0,k]==1])
+print "\ncornerVertices =\n", vcorners
+vedges = set([k for k,vert in enumerate(csrVV) if vert[0,k]==2])
+print "\nedgeVertices =\n", vedges
+vfaces = set([k for k,vert in enumerate(csrVV) if vert[0,k]==4])
+print "\nfaceVertices =\n", vfaces
+
+def vertexClassification(vclasses):
+    def vertexClassification0(facet):
+        return [list(vclass.intersection(facet)) for vclass in vclasses]
+    return vertexClassification0
+
+classify3D = vertexClassification([vcorners,vedges,vfaces])
+partition = [classify3D(facet)  if len(facet)>4 else [facet]  for facet in facets[1]]
+print "\npartition =\n", partition
 
