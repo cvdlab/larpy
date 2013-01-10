@@ -560,7 +560,6 @@ def setup(model,dim):
 
 def larFacets(model,dim=3):
     V,cells,csr,csrAdjSquareMat,facets = setup(model,dim)
-    print "\ncsrAdjSquareMat =\n",csrToMatrixRepresentation(csrAdjSquareMat)
     # for each input cell i
     cellFacets = []
     for i in range(len(cells)):
