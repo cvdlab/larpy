@@ -84,7 +84,8 @@ V = VERTS([range(4),range(4),range(4)])
 outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
 FV = list(cubes[1]+[outverts])
 csrFV = csrCreate(FV)
-csrFF = larCellAdjacencies(csrFV)
+csrVF = csrTranspose(csrFV)
+csrFF = csrProduct(csrFV,csrVF)
 print "\ncsrFF =\n", csrToMatrixRepresentation(csrFF)
 facets = larFacets((V,FV),dim=3)
 VIEW(EXPLODE(2.5,2.5,2.5)(MKPOLS(facets)))
@@ -105,6 +106,50 @@ def vertexClassification(vclasses):
     return vertexClassification0
 
 classify3D = vertexClassification([vcorners,vedges,vfaces])
-partition = [classify3D(facet)  if len(facet)>4 else [facet]  for facet in facets[1]]
-print "\npartition =\n", partition
+vertexSubsets = [classify3D(facet)  if len(facet)>4 else [facet]  for facet in facets[1]]
+print "\nvertexSubsets =\n", vertexSubsets
+
+vertexCells = [set() for v in V]
+for k,cell in enumerate(FV[:-1]):
+    for v in cell:
+        vertexCells[v] = vertexCells[v].union([k])
+vertexCellSubsets = [ [[list(vertexCells[v]) for v in sub] for sub in subset] if len(subset)>1 else [subset]
+                     for subset in vertexSubsets ]
+print "\nvertexCellSubsets =\n", vertexCellSubsets
+
+
+# combinazion of facet vertices of various groups
+from itertools import combinations
+
+def mapVerts2Cells (vertexSubsets,vertexCellSubsets):
+    pairs = zip(vertexSubsets,vertexCellSubsets)
+    fun = lambda args: CAT(AA(TRANS)(TRANS(args)))
+    return dict(CAT(AA(fun)(pairs)))
+
+def combFacetVertices (cverts):
+    def combFacetVertices0 (vertGroups):
+        print "\nvertGroups =",vertGroups
+        if len(vertGroups) == 1: return vertGroups
+        else:
+            K_1 = [vertGroups[0] + list(pair) for pair in combinations(vertGroups[1],2) ]
+            print "\nK_1 =", K_1
+            if len(K_1) == 3: K_2 = [sub + [vertGroups[2][k]] for k,sub in enumerate(K_1)]
+            elif len(K_1) == 1: K_2 = [K_1[0] + vertGroups[2][:2], K_1[0] + vertGroups[2][2:]]
+            else: raise Exception('facet error')
+        return K_2
+    return combFacetVertices0
+
+
+cverts = mapVerts2Cells(vertexSubsets,vertexCellSubsets)
+print "\ncverts =",cverts
+all = CAT([combFacetVertices(cverts)(vertGroups) for vertGroups in vertexSubsets])
+print "\nall =", all
+VIEW(EXPLODE(2.5,2.5,2.5)(MKPOLS((V,all))))
+
+
+
+
+
+
+
 
