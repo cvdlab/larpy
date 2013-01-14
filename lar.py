@@ -401,8 +401,11 @@ if __name__ == "__main__" and True:
 #------------------------------------------------------------------
 # FV = d-chain;  EV = (d-1)-chain
 def larBoundary(FV,EV):
-    csrFV = csrCreateFromCoo(cooCreateFromBrc(FV))
-    csrEV = csrCreateFromCoo(cooCreateFromBrc(EV))
+    f = len(FV)
+    e = len(EV)
+    v = max(AA(max)(FV))+1
+    csrFV = csrCreate(FV,shape=(f,v))
+    csrEV = csrCreate(EV,shape=(e,v))
     csrBoundary_2 = csrMaxFilter(larCellIncidences(csrEV,csrFV))
     return csrBoundary_2
 
