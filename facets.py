@@ -8,6 +8,7 @@ from lar import *
 
 # test data (3D cuboidal complex)
 geom_1,topol_1 = [[0.],[1.],[2.],[3.]], [[0,1],[1,2],[2,3]]
+geom_1,topol_1 = AA(LIST)(range(10)), [[k,k+1] for k,v in enumerate(range(10)[:-1])]
 mod_1 = (geom_1,topol_1)
 squares = larProduct([mod_1,mod_1])
 cubes = larProduct([squares,mod_1])
@@ -29,7 +30,6 @@ def larFacets(model,dim=3):
     # sort and remove duplicates
     cellFacets = sorted(cellFacets)
     cellFacets = [facet for k,facet in enumerate(cellFacets[:-1]) if facet != cellFacets[k+1]] + [cellFacets[-1]]
-    print "\ncellFacets =",cellFacets
     return V,cellFacets
 
 # look whether v is on the boundary of the (multidimensional) interval [vmin,vmax]
@@ -41,6 +41,7 @@ def test (vmin, vmax):
 
 # test data (3D cuboidal complex)
 V = VERTS([range(4),range(4),range(4)])
+V = VERTS([range(10),range(10),range(10)])
 outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
 FV = list(cubes[1]+[outverts])
 
@@ -53,50 +54,157 @@ FV = list(cubes[1]+[outverts])
 facets = larFacets((V,FV),dim=3)
 VIEW(EXPLODE(2,2,2)(MKPOLS(facets)))
 
-# 2. Calcolo degli spigoli delle faccette e delle faccette di bordo
+# 2. Calcolo degli spigoli delle faccette 
 
 edges = larFacets((V,facets[1]),dim=2)
 VIEW(EXPLODE(2,2,2)(MKPOLS(edges)))
 
+# 3. Calcolo dei vertici di bordo degli spigoli delle faccette
+
+vertices = larFacets((V,edges[1]),dim=1)
+VIEW(EXPLODE(2,2,2)(MKPOLS(vertices)))
+
+# 4. ordering of facet edges
+
+edges_2v = []
+edges_3v = []
+verts = set(CAT(vertices[1])) # boundaries of edges
+for edge in edges[1]:
+    if len(edge) == 2: edges_2v.append(edge)
+    elif len(edge) == 3:
+        if edge[1] not in verts: edges_3v.append(edge)
+        elif edge[0] not in verts: edges_3v.append([edge[1],edge[0],edge[2]])
+        else: edges_3v.append([edge[1],edge[2],edge[0]])
+edges = CAT([edges_2v,edges_3v])
+VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
+
+
+##################
+
+# test data (2D cuboidal complex)
+geom_1,topol_1 = [[0.],[1.],[2.],[3.]], [[0,1],[1,2],[2,3]]
+geom_1,topol_1 = AA(LIST)(range(10)), [[k,k+1] for k,v in enumerate(range(10)[:-1])]
+mod_1 = (geom_1,topol_1)
+squares = larProduct([mod_1,mod_1])
+VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(squares)))
+
+V = squares[0]
+outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
+EV = list(squares[1]+[outverts])
+
+# 2. Calcolo degli spigoli delle faccette
+
+edges = larFacets((V,EV),dim=2)
+VIEW(EXPLODE(2,2,2)(MKPOLS(edges)))
+
+# 3. Calcolo dei vertici di bordo degli spigoli delle faccette
+
+vertices = larFacets((V,edges[1]),dim=1)
+VIEW(EXPLODE(2,2,2)(MKPOLS(vertices)))
+
+# 4. ordering of facet edges
+
+edges_2v = []
+edges_3v = []
+verts = set(CAT(vertices[1])) # boundaries of edges
+for edge in edges[1]:
+    if len(edge) == 2: edges_2v.append(edge)
+    elif len(edge) == 3:
+        if edge[1] not in verts: edges_3v.append(edge)
+        elif edge[0] not in verts: edges_3v.append([edge[1],edge[0],edge[2]])
+        else: edges_3v.append([edge[1],edge[2],edge[0]])
+edges = CAT([edges_2v,edges_3v])
+VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
 
 
 
-
-boundaryEdges = larBoundary(facets[1],edges[1])
-_2cells = csrExtractAllGenerators(boundaryEdges)
-polylines = [ POLYLINE([V[v] for v in edges[1][edge]]) for edge in range(csrGetNumberOfColumns(boundaryEdges))]
-VIEW(EXPLODE(2,2,2)(polylines))
-polygons2D = [STRUCT([ POLYLINE([V[v] for v in edges[1][edge]]) for edge in cell]) for cell in _2cells]
-VIEW(EXPLODE(3,3,3)(polygons2D))
+##############################
 
 
-# 2. Ordinamento delle faccette di bordo in funzione crescente del numero di vertici.
-
-vertexOrder,FV = TRANS([pair for pair in sorted([(len(facet),facet) for facet in facets[1]])])
-print "\nsortedFacets =",FV
-print "\nvertexOrder =",vertexOrder
-
-# 3. Calcolo di un indice "invertito":  v -> incident facets
-
-cellsOnVert = [[] for k in range(len(V))]
-[cellsOnVert[v].append(f) for f,facet in enumerate(FV) for v in facet]
-print "\ncellsOnVert =",cellsOnVert
+V0 = [[]]
+CV0 = [[0]]
+model = larExtrude((V0,CV0),2*[1,1,1])
+VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+model = larExtrude(model,2*[1,1,1])
+VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+#model = larExtrude(model,2*[1,1,1])
+#VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
 
 
-# 2. Partizione delle faccette di cardinalita' $> d-1$ in sottoinsiemi "piatti", ovvero con dimensione del guscio affine pari a $d-1$.
+V = model[0]
+outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
+EV = list(model[1]+[outverts])
+
+# 2. Calcolo degli spigoli delle faccette
+
+edges = larFacets((V,EV),dim=2)
+VIEW(EXPLODE(2,2,2)(MKPOLS(edges)))
+
+# 3. Calcolo dei vertici di bordo degli spigoli delle faccette
+
+vertices = larFacets((V,edges[1]),dim=1)
+VIEW(EXPLODE(2,2,2)(MKPOLS(vertices)))
+
+# 4. ordering of facet edges
+
+edges_2v = []
+edges_3v = []
+verts = set(CAT(vertices[1])) # boundaries of edges
+for edge in edges[1]:
+    if len(edge) == 2: edges_2v.append(edge)
+    elif len(edge) == 3:
+        if edge[1] not in verts: edges_3v.append(edge)
+        elif edge[0] not in verts: edges_3v.append([edge[1],edge[0],edge[2]])
+        else: edges_3v.append([edge[1],edge[2],edge[0]])
+edges = CAT([edges_2v,edges_3v])
+VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
 
 
-# 3. Sia $M_{d-1}$ la matrice caratteristica dei sottoinsiemi $S_{i,j}$, ordinata per righe rispetto al numero (crescente) di vertici incidenti. Si vuole sostituire ad ogni riga con somma maggiore di $d$ un insieme di righe di somma $d$ corrispondenti ad un insieme connesso di faccette piatte con gli stessi vertici, ovvero con la stessa somma sulle colonne.
+
+##############################
 
 
-# 4.  Questa decomposizione delle righe e' unica? probabilmente no. Dovendo scegliere tra piu' decomposizioni ammissibili, sceglieremmo quella (unica?) dove la catena cobordo del bordo abbia---a tratti---lo stesso guscio affine delle faccette esterne adiacenti al bordo.
+V0 = [[]]
+CV0 = [[0]]
+model = larExtrude((V0,CV0),2*[1,1,1])
+VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+model = larExtrude(model,2*[1,1,1])
+VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+model = larExtrude(model,1*[1,1,1])
+VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
 
 
-# decomposizione fine
-# -------------------
+V = model[0]
+outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
+FV = list(model[1]+[outverts])
 
-# 5. Consideriamo la prima faccetta di cardinalita' maggiore di $d$, sia $S_k$, di indice $k$ ed estraiamo la sottomatrice massimale $N_k$ delle righe di $M_{d-1}$ con indice di riga minore di $k$  e somma per colonne pari a $2M_k$, ovvero delle faccette adiacenti di cardinalita' eguale a $d$.
 
-# 6. Partizioniamo $M_k$ (utilizzando $N_k$ e/o $N_k^T.N_k$ ed $N_k.N_k^T$) in piu' righe $R_k$, che sostituiamo ad $M_k$.
+# 1. Calcolo faccette come sottoinsiemi $S_{i,j}$ di vertici comuni alle coppie di celle $S_i, S_j \in \Lambda_d(X)$ ($i,j\in \N$). $\sharp S_{i,j} \geq \dim(S_i) = \dim(S_j) = d$
 
-# 7. Incrementiamo $k$ e ritorniamo al punto 5, fino a terminare.
+facets = larFacets((V,FV),dim=3)
+VIEW(EXPLODE(2,2,2)(MKPOLS(facets)))
+
+# 2. Calcolo degli spigoli delle faccette
+
+edges = larFacets(facets,dim=2)
+VIEW(EXPLODE(2,2,2)(MKPOLS(edges)))
+
+# 3. Calcolo dei vertici di bordo degli spigoli delle faccette
+
+vertices = larFacets((V,edges[1]),dim=1)
+VIEW(EXPLODE(2,2,2)(MKPOLS(vertices)))
+
+# 4. ordering of facet edges
+
+edges_2v = []
+edges_3v = []
+verts = set(CAT(vertices[1])) # boundaries of edges
+for edge in edges[1]:
+    if len(edge) == 2: edges_2v.append(edge)
+    elif len(edge) == 3:
+        if edge[1] not in verts: edges_3v.append(edge)
+        elif edge[0] not in verts: edges_3v.append([edge[1],edge[0],edge[2]])
+        else: edges_3v.append([edge[1],edge[2],edge[0]])
+edges = CAT([edges_2v,edges_3v])
+VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
+

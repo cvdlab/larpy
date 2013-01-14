@@ -542,11 +542,11 @@ if __name__ == "__main__" and True:
     
     V0 = [[]]
     CV0 = [[0]]
-    model = larExtrude((V0,CV0),4*[1,-1,1])
+    model = larExtrude((V0,CV0),2*[1,1,1])
     VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
-    model = larExtrude(model,4*[1,-1,1])
+    model = larExtrude(model,2*[1,1,1])
     VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
-    model = larExtrude(model,4*[1,-1,1])
+    model = larExtrude(model,2*[1,1,1])
     VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
 
 #------------------------------------------------------------------
