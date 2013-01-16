@@ -6,15 +6,12 @@ from lar import *
 # input:  matrice caratteristica $M_d$;
 # output:  matrice caratteristica $M_{d-1}$.
 
-# test data (3D cuboidal complex)
-geom_1,topol_1 = [[0.],[1.],[2.],[3.]], [[0,1],[1,2],[2,3]]
-geom_1,topol_1 = AA(LIST)(range(10)), [[k,k+1] for k,v in enumerate(range(10)[:-1])]
-mod_1 = (geom_1,topol_1)
-squares = larProduct([mod_1,mod_1])
-cubes = larProduct([squares,mod_1])
-VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cubes)))
 
 def larFacets(model,dim=3):
+    """
+    Estraction of (d-1)-cellFacets from model := (V,d-cells)
+    Return (V, (d-1)-cellFacets)
+    """
     V,cells,csr,csrAdjSquareMat,facets = setup(model,dim)
     cellFacets = []
     # for each input cell i
@@ -32,44 +29,72 @@ def larFacets(model,dim=3):
     cellFacets = [facet for k,facet in enumerate(cellFacets[:-1]) if facet != cellFacets[k+1]] + [cellFacets[-1]]
     return V,cellFacets
 
-# look whether v is on the boundary of the (multidimensional) interval [vmin,vmax]
-def test (vmin, vmax):
-	def test0 (v):
-		return OR(AA(EQ)(CAT(AA(TRANS)([[vmin,v],[vmax,v]]))))
-	return test0
+def larSkeletons (model,dim=3):
+    """
+    Estraction of all skeletons from model := (V,d-cells)
+    Return (V, [d-cells, (d-1)-cells, ..., 1-cells]) where p-cells is a list_of_lists_of_integers
+    """
+    faces = []
+    faces.append(model[1])
+    for p in range(dim,0,-1):
+        model = larFacets(model,dim=p)
+        faces.append(model[1])
+    return model[0],faces
+
+def test (bounds):
+    """
+    Look whether v is on the boundary of a unconnected (multi-dim) interval [vmin_0,vmax_0, ... ,vmin_n,vmax_n]
+    Return a Boolean value
+    """
+    def test0 (v):
+        return OR(AA(EQ)(CAT(AA(TRANS)(DISTR([bounds,v])))))
+    return test0
 
 
-# test data (3D cuboidal complex)
-V = VERTS([range(4),range(4),range(4)])
-V = VERTS([range(10),range(10),range(10)])
-outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
-FV = list(cubes[1]+[outverts])
+if __name__=="__main__":
+
+    # test data (3D cuboidal complex)
+    #geom_1,topol_1 = [[0.],[1.],[2.],[3.]], [[0,1],[1,2],[2,3]]
+    interval = range(3+1)
+    geom_1,topol_1 = AA(LIST)(interval), [[k,k+1] for k,v in enumerate(interval[:-1])]
+    mod_1 = (geom_1,topol_1)
+    squares = larProduct([mod_1,mod_1])
+    cubes = larProduct([squares,mod_1])
+    #VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cubes)))
+    # test data (3D cuboidal complex)
+    V = VERTS([interval,interval,interval])
+    outverts = [ k for k,v in enumerate(V) if test([V[0],V[-1]])(V[k]) ]
+    F3V = list(cubes[1]+[outverts])
 
 
-# decomposizione iniziale
-# -----------------------
+    model = (V,F3V)
+    V,faces = larSkeletons(model,dim=3)
+    F3V, F2V, F1V, F0V = faces
+    V = model[0]
+    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F3V)) ))
+    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F2V)) ))
+    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F1V)) ))
+    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F0V)) ))
 
-# 1. Calcolo faccette come sottoinsiemi $S_{i,j}$ di vertici comuni alle coppie di celle $S_i, S_j \in \Lambda_d(X)$ ($i,j\in \N$). $\sharp S_{i,j} \geq \dim(S_i) = \dim(S_j) = d$
 
-facets = larFacets((V,FV),dim=3)
-VIEW(EXPLODE(2,2,2)(MKPOLS(facets)))
+    # Testing sparse-matrix representation
+    csrF3V = csrCreate(F3V, shape=(len(F3V),len(V)))
+    csrF2V = csrCreate(F2V, shape=(len(F2V),len(V)))
+    csrF1V = csrCreate(F1V, shape=(len(F1V),len(V)))
+    csrF0V = csrCreate(F0V, shape=(len(F0V),len(V)))
+    print "\nrepr(csrF3V) =",repr(csrF3V)
+    print "\nrepr(csrF2V) =",repr(csrF2V)
+    print "\nrepr(csrF1V) =",repr(csrF1V)
+    print "\nrepr(csrF0V) =",repr(csrF0V)
 
-# 2. Calcolo degli spigoli delle faccette 
+"""
 
-edges = larFacets((V,facets[1]),dim=2)
-VIEW(EXPLODE(2,2,2)(MKPOLS(edges)))
 
-# 3. Calcolo dei vertici di bordo degli spigoli delle faccette
-
-vertices = larFacets((V,edges[1]),dim=1)
-VIEW(EXPLODE(2,2,2)(MKPOLS(vertices)))
-
-# 4. ordering of facet edges
 
 edges_2v = []
 edges_3v = []
-verts = set(CAT(vertices[1])) # boundaries of edges
-for edge in edges[1]:
+verts = set(CAT(faces[0])) # boundaries of edges
+for edge in faces[1]:
     if len(edge) == 2: edges_2v.append(edge)
     elif len(edge) == 3:
         if edge[1] not in verts: edges_3v.append(edge)
@@ -79,43 +104,41 @@ edges = CAT([edges_2v,edges_3v])
 VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
 
 
-##################
+EV = edges
+FV = faces[2]
+csrFV = csrCreate(FV)
+csrEV = csrCreate(EV,shape=(84,64))
+csrVF = csrTranspose(csrFV)
+csrEF = csrProduct(csrEV, csrVF)
+boundary = csrMaxFilter(csrEF)
+# 2D curved cell complex
+_2cells = csrExtractAllGenerators(boundary)
 
-# test data (2D cuboidal complex)
-geom_1,topol_1 = [[0.],[1.],[2.],[3.]], [[0,1],[1,2],[2,3]]
-geom_1,topol_1 = AA(LIST)(range(10)), [[k,k+1] for k,v in enumerate(range(10)[:-1])]
-mod_1 = (geom_1,topol_1)
-squares = larProduct([mod_1,mod_1])
-VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(squares)))
 
-V = squares[0]
-outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
-EV = list(squares[1]+[outverts])
+def cellMapping(cell):
+    return BEZIER(S2)([ BEZIER(S1)([V[v] for v in EV[edge]]) for edge in cell])
 
-# 2. Calcolo degli spigoli delle faccette
 
-edges = larFacets((V,EV),dim=2)
-VIEW(EXPLODE(2,2,2)(MKPOLS(edges)))
+dom2D = PROD([INTERVALS(1)(10),INTERVALS(1)(10)])
+cells2D = [MAP(cellMapping(cell))(dom2D) for cell in _2cells]
+#cells2D = [SOLIDIFY(STRUCT([ bezier([V[v] for v in EV[edge]]) for edge in cell])) for cell in _2cells]
+VIEW(EXPLODE(2,2,2)(cells2D))
 
-# 3. Calcolo dei vertici di bordo degli spigoli delle faccette
 
-vertices = larFacets((V,edges[1]),dim=1)
-VIEW(EXPLODE(2,2,2)(MKPOLS(vertices)))
+##############################
 
-# 4. ordering of facet edges
 
-edges_2v = []
-edges_3v = []
-verts = set(CAT(vertices[1])) # boundaries of edges
-for edge in edges[1]:
-    if len(edge) == 2: edges_2v.append(edge)
-    elif len(edge) == 3:
-        if edge[1] not in verts: edges_3v.append(edge)
-        elif edge[0] not in verts: edges_3v.append([edge[1],edge[0],edge[2]])
-        else: edges_3v.append([edge[1],edge[2],edge[0]])
-edges = CAT([edges_2v,edges_3v])
-VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
+V0 = [[]]
+CV0 = [[0]]
+model = larExtrude((V0,CV0),2*[1,1,1])
+VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+model = larExtrude(model,2*[1,1,1])
+VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
 
+model,faces = larSkeletons(model,dim=2)
+VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS((model[0],faces[2]))))
+VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS((model[0],faces[1]))))
+VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS((model[0],faces[0]))))
 
 
 ##############################
@@ -132,7 +155,7 @@ VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
 
 
 V = model[0]
-outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
+outverts = [ k for k,v in enumerate(V) if test([V[0],V[-1]])(V[k]) ]
 EV = list(model[1]+[outverts])
 
 # 2. Calcolo degli spigoli delle faccette
@@ -175,7 +198,7 @@ VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
 
 
 V = model[0]
-outverts = [ k for k,v in enumerate(V) if test(V[0],V[-1])(V[k]) ]
+outverts = [ k for k,v in enumerate(V) if test([V[0],V[-1]])(V[k]) ]
 FV = list(model[1]+[outverts])
 
 
@@ -207,4 +230,4 @@ for edge in edges[1]:
         else: edges_3v.append([edge[1],edge[2],edge[0]])
 edges = CAT([edges_2v,edges_3v])
 VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
-
+"""
