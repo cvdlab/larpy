@@ -49,11 +49,11 @@ def gridTest(bounds, relativeCoords=True):
     if relativeCoords: 
         bounds = [ [0] + PROGRESSIVESUM([0]+bound) for bound in list(abs(scipy.array(bounds))) ]
         print "\nbounds =",bounds
-    def multiBoxBoundaryTest0(point):
+    def gridTest0(point):
         return OR(AA(EQ)(CAT(AA(DISTR)(TRANS([bounds,point])))))
-    return multiBoxBoundaryTest0
+    return gridTest0
 
-multiBoxBoundaryTest([[1,1,1],[1,1,1]])([1,1])
+gridTest([[1,1,1],[1,1,1]])([1,1])
   
   
 
