@@ -39,7 +39,23 @@ def larSkeletons (model,dim=3):
     for p in range(dim,0,-1):
         model = larFacets(model,dim=p)
         faces.append(model[1])
-    return model[0],faces
+    return model[0], REVERSE(faces)
+
+
+"""
+Predicate tu test wheather 
+"""
+def gridTest(bounds, relativeCoords=True):
+    if relativeCoords: 
+        bounds = [ [0] + PROGRESSIVESUM([0]+bound) for bound in list(abs(scipy.array(bounds))) ]
+        print "\nbounds =",bounds
+    def multiBoxBoundaryTest0(point):
+        return OR(AA(EQ)(CAT(AA(DISTR)(TRANS([bounds,point])))))
+    return multiBoxBoundaryTest0
+
+multiBoxBoundaryTest([[1,1,1],[1,1,1]])([1,1])
+  
+  
 
 def test (bounds):
     """
@@ -69,9 +85,9 @@ if __name__=="__main__":
 
     model = (V,F3V)
     V,faces = larSkeletons(model,dim=3)
-    F3V, F2V, F1V, F0V = faces
+    F0V, F1V, F2V, F3V = faces
     V = model[0]
-    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F3V)) ))
+    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F3V[:-1])) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F2V)) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F1V)) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F0V)) ))
@@ -87,21 +103,22 @@ if __name__=="__main__":
     print "\nrepr(csrF1V) =",repr(csrF1V)
     print "\nrepr(csrF0V) =",repr(csrF0V)
 
+
+
+
+    edges_2v = []
+    edges_3v = []
+    verts = set(CAT(faces[0])) # boundaries of edges
+    for edge in faces[1]:
+        if len(edge) == 2: edges_2v.append(edge)
+        elif len(edge) == 3:
+            if edge[1] not in verts: edges_3v.append(edge)
+            elif edge[0] not in verts: edges_3v.append([edge[1],edge[0],edge[2]])
+            else: edges_3v.append([edge[1],edge[2],edge[0]])
+    edges = CAT([edges_2v,edges_3v])
+    VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
+
 """
-
-
-
-edges_2v = []
-edges_3v = []
-verts = set(CAT(faces[0])) # boundaries of edges
-for edge in faces[1]:
-    if len(edge) == 2: edges_2v.append(edge)
-    elif len(edge) == 3:
-        if edge[1] not in verts: edges_3v.append(edge)
-        elif edge[0] not in verts: edges_3v.append([edge[1],edge[0],edge[2]])
-        else: edges_3v.append([edge[1],edge[2],edge[0]])
-edges = CAT([edges_2v,edges_3v])
-VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
 
 
 EV = edges

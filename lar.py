@@ -1,25 +1,74 @@
 # -*- coding: utf-8 -*-
+"""
+The MIT License
+===============
+    
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import collections
 import scipy.sparse
 from scipy import zeros,arange,mat
 from scipy.sparse import vstack,hstack,csr_matrix,lil_matrix,triu
 from scipy.spatial import Delaunay
 from scipy.linalg import *
-
 from pyplasm import *
+
 #------------------------------------------------------------------
 #--geometry layer (using PyPlasm)----------------------------------
 #------------------------------------------------------------------
 
 def bezier(points):
+    """
+        To create a Bezier curve of degree n from a list of n+1 d-points.
+        Each point is given as a list of coordinates.
+        
+        Return a geometric object of HPC (Hierarchical Polyhedral Complex) type.
+    """
     return MAP(BEZIERCURVE(points))(INTERVALS(1)(20))
 
-# convex combination operator
-CCOMB = COMP([ SCALARVECTPROD,
-              CONS([ COMP([ DIV, CONS([K(1),LEN]) ]), VECTSUM ]) ])
+def CCOMB(vectors):
+    """
+        To create the convex combination of a list of vectors.
+        Each vector is given as a list of coordinates.
+        
+        Return a vector.
+    """
+    return (COMP([ SCALARVECTPROD,CONS([ COMP([ DIV, CONS([K(1),LEN]) ]), VECTSUM ]) ]))(vectors)
 
 def EXPLODE (sx,sy,sz):
+    """
+        To explode a HPC scene, given three real scaling parameters.
+        sx,sy,sz >= 1.0
+        
+        Return a function to be applied to a list of HPC (Hierarchical Polyhedral Complex) objects.
+    """
     def explode0 (scene):
+        """
+            To explode  a HPC scene, given as a list of HPC objects.
+            Dimension-independent function (can be applied to points, edges, faces, cells, even mixed).
+            Compute the centroid of each object, and apply to each of them a translation equal
+            to the difference betwwen the scaled and the initial positions of its centroid.
+            
+            Return a single HPC object (the assembly of input objects, properly translated).
+        """
         centers = [CCOMB(S1(UKPOL(obj))) for obj in scene]
         scalings = len(centers) * [S([1,2,3])([sx,sy,sz])]
         scaledCenters = [UK(APPLY(pair)) for pair in
@@ -30,35 +79,74 @@ def EXPLODE (sx,sy,sz):
     return explode0
 
 def MKPOLS (model):
+    """
+        To MaKe a list of HPC objects from a LAR model.
+        A LAR model is a pair, i.e. a Python tuple (V, FV), where
+        -   V is the list of vertices, given as lists of coordinates;
+        -   FV is the face-vertex relation, given as a list of faces,
+            where each face is given as a list of vertex indices.
+        
+        Return a list of HPC objects.
+    """
     V, FV = model
     pols = [MKPOL([[V[v] for v in f],[range(1,len(f)+1)], None]) for f in FV]
     return pols
 
 def LAR2PLASM (topology):
+    """
+        To transform a topological relation from LAR format (base-index = 0, like C or python) 
+        to PyPLASM format (base-index = 1, like fortran or matlab).
+        topology stands for any LAR d_cell-vertex relation (es: EV, FV, CV, etc.)
+        represented as a list of lists of integers (vertex indices in 0-basis).
+        
+        Return a list of lists of integers (vertex indices in 1-basis).
+    """
     return AA(AA(lambda k: k+1))(topology)
 
 def VERTS(geoms):
+    """
+        To generate the vertices of a grid of points from a list of d lists (of equal length) of numbers.
+        geoms is the list of xcoods, ycoords, zcoords, etc., where xcoods, etc. is an increasing list of numbers.
+        
+        returns a properly ordered list of d-vertices, each given a list of numbers (vertex coordinates).
+    """
     return COMP([AA(REVERSE),CART,REVERSE])(geoms)
 
 def VERTEXTRUDE((V,coords)):
+    """
+        Utility function to generate the output model vertices in a multiple extrusion of a LAR model.
+        V is a list of d-vertices (each given as a list of d coordinates).
+        coords is a list of absolute translation parameters to be applied to V in order
+        to generate the output vertices.
+        
+        Return a new list of (d+1)-vertices.
+    """
     return CAT(AA(COMP([AA(AR),DISTR]))(DISTL([V,coords])))
 
 
-#------------------------------------------------------------------
-#--coo is the standard rep using non-ordered triples of numbers----
-#--coo := (row::integer, column::integer, value::float)------------
-#------------------------------------------------------------------
-
 def format(cmat,shape="csr"):
-    """ Transform from plasm's compressed format (list)
-        of triples to scipy.sparse corresponding formats.
-        """
+    """ Transform from list of triples (row,column,vale) 
+        to scipy.sparse corresponding formats. 
+        
+        Return by default a csr format of a scipy sparse matrix.
+    """
     n = len(cmat)
     data = arange(n)
     ij = arange(2*n).reshape(2,n)
     for k,item in enumerate(cmat):
         ij[0][k],ij[1][k],data[k] = item
     return scipy.sparse.coo_matrix((data, ij)).asformat(shape)
+
+
+###################################################################
+
+#------------------------------------------------------------------
+#-- basic LAR software layer --------------------------------------
+#------------------------------------------------------------------
+
+#--coo is the standard rep using non-ordered triples of numbers----
+#--coo := (row::integer, column::integer, value::float)------------
+
 
 #------------------------------------------------------------------
 def cooCreateFromBrc(ListOfListOfInt):
