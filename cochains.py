@@ -38,6 +38,27 @@ sb = COLOR(GREEN)(MAP(BEZIER(S2)(cb))(dom2D))
 
 VIEW(STRUCT([scaffold,cgrid_a,cgrid_b,sa,sb]))
 
+# -----------------------------------------------------------------------------
+# topology computation
 
+FV = AA(CAT)([a,b])
+EV = [a[0],a[-1],b[-1],TRANS(a)[0], TRANS(a)[-1],TRANS(b)[0], TRANS(b)[-1]]
 
+FV = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+      [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
+EV = [[0, 1, 2, 3], [8, 9, 10, 11], [16, 17, 18, 19],
+      [0, 4, 8], [3, 7, 11], [8, 12, 16], [11, 15, 19]]
+
+csrFV = csrCreate(FV)
+csrEV = csrCreate(EV)
+csrBoundary_2 = larBoundary(FV,EV)
+print "\ncsrBoundary_2.T =\n", csrToMatrixRepresentation(csrBoundary_2.T)
+chain_1 = larBoundaryChain(csrBoundary_2, range(csrGetNumberOfColumns(csrBoundary_2)))
+print "\nlarBoundaryChain =\n", csrChainToCellList(chain_1)
+_1cells = csrExtractAllGenerators(chain_1)[0]
+
+boundaryEV = [[V[v] for v in EV[e]] for e in _1cells]
+boundaryMaps = AA(BEZIER(S1))(boundaryEV)
+boundary = STRUCT(CONS(AA(MAP)(boundaryMaps))(dom1D))
+VIEW(boundary)
 
