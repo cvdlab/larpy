@@ -364,7 +364,7 @@ if __name__ == "__main__" and self_test:
 def csrMaxFilter(CSRm):
     # can be done in parallel (by rows)
     nrows = csrGetNumberOfRows(CSRm)
-    maxs = [max(CSRm[k].data) for k in range(nrows)]
+    maxs = [max(CSRm[k].data) for k in range(nrows) if CSRm[k].data != []]
     coo = CSRm.tocoo()
     triples = [[row,col,1] for row,col,val in zip(coo.row,coo.col,coo.data)
                if maxs[row]==val]
@@ -374,6 +374,20 @@ def csrMaxFilter(CSRm):
 if __name__ == "__main__" and self_test:
     print "\n>>> csrMaxFilter"
     CSRm = csrMaxFilter(csrProduct(csrFV, csrTranspose(csrEV)).T).T
+    print "\ncsrMaxFilter(csrFE) =\n", csrToMatrixRepresentation(CSRm)
+
+
+#------------------------------------------------------------------
+def csrBoundaryFilter(CSRm, facetLengths):
+    coo = CSRm.tocoo()
+    triples = [[row,col,1] for row,col,val in zip(coo.row,coo.col,coo.data)
+               if val==facetLengths[row]]
+    CSRm = csrCreateFromCoo(triples)
+    return CSRm
+
+if __name__ == "__main__" and self_test:
+    print "\n>>> csrBoundaryFilter"
+    CSRm = csrBoundaryFilter(csrProduct(csrFV, csrTranspose(csrEV)).T).T
     print "\ncsrMaxFilter(csrFE) =\n", csrToMatrixRepresentation(CSRm)
 
 #------------------------------------------------------------------
@@ -443,8 +457,9 @@ def csrExtractAllGenerators(CSRm):
 
 if __name__ == "__main__" and self_test:
     print "\n>>> csrExtractAllGenerators"
-    boundary_2_Op = csrMaxFilter(
-                                 csrProduct(csrEV, csrTranspose(csrFV)))
+    facetLengths = [csrCell.getnnz() for csrCell in csrEV]
+    boundary_2_Op = csrBoundaryFilter(csrProduct(csrEV, csrTranspose(csrFV)),
+                                 facetLengths)
     listOfListOfNumerals = csrExtractAllGenerators(boundary_2_Op)
     print "\ncsrExtractAllGenerators(boundary_2_Op) =\n", \
         listOfListOfNumerals
@@ -491,12 +506,13 @@ if __name__ == "__main__" and self_test:
 #------------------------------------------------------------------
 # FV = d-chain;  EV = (d-1)-chain
 def larBoundary(EV,FV):
-    f = len(FV)
     e = len(EV)
-    v = max(AA(max)(FV))+1
+    f = len(FV)
+    v = max(CAT(FV))+1
     csrFV = csrCreate(FV,shape=(f,v))
     csrEV = csrCreate(EV,shape=(e,v))
-    csrBoundary_2 = csrMaxFilter(larCellIncidences(csrEV,csrFV))
+    facetLengths = [csrCell.getnnz() for csrCell in csrEV]
+    csrBoundary_2 = csrBoundaryFilter(larCellIncidences(csrEV,csrFV),facetLengths)
     return csrBoundary_2
 
 if __name__ == "__main__" and self_test:
@@ -735,7 +751,8 @@ if __name__ == "__main__":
     
     
     # boundary and coboundary operators
-    boundary = csrMaxFilter(csrEF)
+    facetLengths = [csrCell.getnnz() for csrCell in csrEV]
+    boundary = csrBoundaryFilter(csrEF,facetLengths)
     coboundary = csrTranspose(boundary)
     print "\ncoboundary =\n", csrToMatrixRepresentation(coboundary)
     
