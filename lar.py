@@ -490,7 +490,7 @@ if __name__ == "__main__" and self_test:
 
 #------------------------------------------------------------------
 # FV = d-chain;  EV = (d-1)-chain
-def larBoundary(FV,EV):
+def larBoundary(EV,FV):
     f = len(FV)
     e = len(EV)
     v = max(AA(max)(FV))+1
