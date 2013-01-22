@@ -42,8 +42,20 @@ def larSkeletons (model,dim=3):
     return model[0], REVERSE(faces)
 
 
+
+def boundarGrid(model,minPoint,maxPoint):
+    dim = len(minPoint)
+    # boundary points extraction
+    out = [[] for k in range(2*dim)]
+    for n,point in enumerate(model[0]):
+        for k,coord in enumerate(point):
+            if coord == minPoint[k]: out[k].append(n)
+            if coord == maxPoint[k]: out[dim+k].append(n)
+    return out
+
+
 """
-Predicate tu test wheather 
+Predicate to test wheather 
 """
 def gridTest(bounds, relativeCoords=True):
     if relativeCoords: 
@@ -79,15 +91,17 @@ if __name__=="__main__":
     #VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cubes)))
     # test data (3D cuboidal complex)
     V = VERTS([interval,interval,interval])
-    outverts = [ k for k,v in enumerate(V) if test([V[0],V[-1]])(V[k]) ]
-    F3V = list(cubes[1]+[outverts])
+    outverts = [[ k for k,v in enumerate(V) if test([V[0],V[-1]])(V[k]) ]]
+    outverts = boundarGrid(cubes,[0,0,0],[3,3,3])
+    F3V = list(cubes[1]+ outverts)
 
 
     model = (V,F3V)
     V,faces = larSkeletons(model,dim=3)
     F0V, F1V, F2V, F3V = faces
+    print "AA(LEN)([F0V, F1V, F2V, F3V]) =", AA(LEN)([F0V, F1V, F2V, F3V])
     V = model[0]
-    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F3V[:-1])) ))
+    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F3V[:-6])) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F2V)) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F1V)) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F0V)) ))
@@ -117,6 +131,10 @@ if __name__=="__main__":
             else: edges_3v.append([edge[1],edge[2],edge[0]])
     edges = CAT([edges_2v,edges_3v])
     VIEW(STRUCT(AA(bezier)([[V[v] for v in edge] for edge in edges])))
+
+
+
+
 
 """
 

@@ -43,16 +43,20 @@ VIEW(STRUCT([scaffold,cgrid_a,cgrid_b,sa,sb]))
 
 FV = AA(CAT)([a,b])
 EV = [a[0],a[-1],b[-1],TRANS(a)[0], TRANS(a)[-1],TRANS(b)[0], TRANS(b)[-1]]
+VV = AA(LIST)(range(20))
 
 FV = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
 EV = [[0, 1, 2, 3], [8, 9, 10, 11], [16, 17, 18, 19],
       [0, 4, 8], [3, 7, 11], [8, 12, 16], [11, 15, 19]]
+VV = [[0],[1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12],[13],[14],
+      [15],[16],[17],[18],[19]]
 
 csrFV = csrCreate(FV)
 csrEV = csrCreate(EV)
-csrBoundary_2 = larBoundary(FV,EV)
-print "\ncsrBoundary_2.T =\n", csrToMatrixRepresentation(csrBoundary_2.T)
+csrBoundary_2 = larBoundary(EV,FV)
+print "\ncsrBoundary_2 =\n", csrToMatrixRepresentation(csrBoundary_2)
+
 chain_1 = larBoundaryChain(csrBoundary_2, range(csrGetNumberOfColumns(csrBoundary_2)))
 print "\nlarBoundaryChain =\n", csrChainToCellList(chain_1)
 _1cells = csrExtractAllGenerators(chain_1)[0]
@@ -61,4 +65,20 @@ boundaryEV = [[V[v] for v in EV[e]] for e in _1cells]
 boundaryMaps = AA(BEZIER(S1))(boundaryEV)
 boundary = STRUCT(CONS(AA(MAP)(boundaryMaps))(dom1D))
 VIEW(boundary)
+
+
+edges = larFacets((V,FV),dim=3)
+vertices = larFacets((V,EV),dim=1)
+VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(vertices)))
+
+csrVV = csrCreate(VV)
+print "\ncsrVV =\n", csrToMatrixRepresentation(csrVV)
+csrBoundary_1 = larBoundary(VV,EV)     
+print "\ncsrBoundary_1 =\n", csrToMatrixRepresentation(csrBoundary_1)
+chain_0 = larBoundaryChain(csrBoundary_1, range(csrGetNumberOfColumns(csrBoundary_1)))
+print "\nchain_0 =\n", chain_0
+print "\nlarBoundaryChain =\n", csrChainToCellList(chain_0)
+
+csrToMatrixRepresentation(csrProduct(csrBoundary_1,csrBoundary_2))
+
 
