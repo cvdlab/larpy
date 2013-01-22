@@ -7,15 +7,17 @@ from lar import *
 # output:  matrice caratteristica $M_{d-1}$.
 
 
-def larFacets(model,dim=3):
+def larFacets(model,dim=3,grid=False):
     """
     Estraction of (d-1)-cellFacets from model := (V,d-cells)
     Return (V, (d-1)-cellFacets)
     """
     V,cells,csr,csrAdjSquareMat,facets = setup(model,dim)
     cellFacets = []
+    internalCellNumber = len(cells)
+    if grid: internalCellNumber -= 2*dim
     # for each input cell i
-    for i in range(len(cells)):
+    for i in range(internalCellNumber):
         adjCells = csrAdjSquareMat[i].tocoo()
         cell1 = csr[i].tocoo().col
         pairs = zip(adjCells.col,adjCells.data)
@@ -37,7 +39,7 @@ def larSkeletons (model,dim=3):
     faces = []
     faces.append(model[1])
     for p in range(dim,0,-1):
-        model = larFacets(model,dim=p)
+        model = larFacets(model,dim=p,grid=(p==dim))
         faces.append(model[1])
     return model[0], REVERSE(faces)
 
@@ -46,12 +48,12 @@ def larSkeletons (model,dim=3):
 def boundarGrid(model,minPoint,maxPoint):
     dim = len(minPoint)
     # boundary points extraction
-    out = [[] for k in range(2*dim)]
+    outerCells = [[] for k in range(2*dim)]
     for n,point in enumerate(model[0]):
-        for k,coord in enumerate(point):
-            if coord == minPoint[k]: out[k].append(n)
-            if coord == maxPoint[k]: out[dim+k].append(n)
-    return out
+        for h,coord in enumerate(point):
+            if coord == minPoint[h]: outerCells[h].append(n)
+            if coord == maxPoint[h]: outerCells[dim+h].append(n)
+    return outerCells
 
 
 """
