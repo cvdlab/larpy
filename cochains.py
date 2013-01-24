@@ -71,6 +71,7 @@ edges = larFacets((V,FV),dim=3)
 vertices = larFacets((V,EV),dim=1)
 VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(vertices)))
 
+
 csrVV = csrCreate(VV)
 print "\ncsrVV =\n", csrToMatrixRepresentation(csrVV)
 csrBoundary_1 = larBoundary(VV,EV)     
@@ -81,4 +82,39 @@ print "\nlarBoundaryChain =\n", csrChainToCellList(chain_0)
 
 csrToMatrixRepresentation(csrProduct(csrBoundary_1,csrBoundary_2))
 
+# -----------------------------------------------------------------------------
+# correction of 1-boundary
 
+FV = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+      [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
+EV = [[0, 1, 2, 3], [8, 9, 10, 11], [16, 17, 18, 19],
+      [0, 4, 8], [3, 7, 11], [8, 12, 16], [11, 15, 19]]
+VV = [[0],[1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12],[13],[14],
+      [15],[16],[17],[18],[19]]
+
+for i,edge in enumerate(EV):
+    for j in edge:
+        if j not in CAT(vertices[1]):
+            csrEV[i,j] = 2
+        else:
+            csrEV[i,j] = 1
+
+print "\ncsrEV =", csrToMatrixRepresentation(csrEV)
+
+facetLengths = [csrCell.getnnz() for csrCell in csrVV]
+csrBoundary_1 = csrBoundaryFilter(larCellIncidences(csrVV,csrEV),facetLengths)
+
+facetLengths = [csrCell.getnnz() for csrCell in csrEV]
+EV = [[0, 1,1, 2,2, 3],
+      [8, 9,9, 10,10, 11],
+      [16, 17,17, 18,18, 19],
+      [0, 4,4, 8],
+      [3, 7,7, 11],
+      [8, 12,12, 16],
+      [11, 15,15, 19]]
+
+csrBoundary_2 = larBoundary(EV,FV)
+
+print "\ncsrBoundary_1 =", csrToMatrixRepresentation(csrBoundary_1)
+print "\ncsrBoundary_2 =", csrToMatrixRepresentation(csrBoundary_2)
+csrToMatrixRepresentation(csrProduct(csrProduct(csrBoundary_1,csrBoundary_2),csrCreate([[0],[0]])))
