@@ -8,7 +8,6 @@
 
 /* Begin PBXFileReference section */
 		C768A413169B1E96006F60D4 /* lar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = lar.py; sourceTree = "<group>"; };
-		C768A414169B2D06006F60D4 /* lar_graphics.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lar_graphics.py; path = "../../SOGEI-workshop/WG.IEEE.3333.2.osaka/code/lar_graphics.py"; sourceTree = "<group>"; };
 		C768A41A169BE83B006F60D4 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = test.py; sourceTree = "<group>"; };
 		C768A41B16A27969006F60D4 /* facets.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = facets.py; sourceTree = "<group>"; };
 		C768A41C16A411C8006F60D4 /* doc.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = doc.md; sourceTree = "<group>"; };
@@ -24,7 +23,6 @@
 				C768A41A169BE83B006F60D4 /* test.py */,
 				C768A41B16A27969006F60D4 /* facets.py */,
 				C768A41C16A411C8006F60D4 /* doc.md */,
-				C768A414169B2D06006F60D4 /* lar_graphics.py */,
 			);
 			sourceTree = "<group>";
 		};
@@ -161,6 +159,7 @@
 				C768A412169B1DEE006F60D4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
