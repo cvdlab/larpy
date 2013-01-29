@@ -234,11 +234,11 @@ if __name__=="__main__":
     outverts = boundarGrid(model,[0,0,0],[3,3,3])
     F3V = model[1]+ outverts
 
+    V = model[0]
     model = (V,F3V)
     V,faces = larSkeletons(model,dim=3)
     F0V, F1V, F2V, F3V = faces
     print "AA(LEN)([F0V, F1V, F2V, F3V]) =", AA(LEN)([F0V, F1V, F2V, F3V])
-    V = model[0]
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F3V[:-6])) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F2V)) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F1V)) ))
@@ -257,11 +257,11 @@ if __name__=="__main__":
     outverts = boundarGrid(model,[0,0],[3,3])
     F2V = model[1]+ outverts
 
-    model = (V,F2V)
+    V = model[0]
+    model = (model[0],F2V)
     V,faces = larSkeletons(model,dim=2)
     F0V, F1V, F2V = faces
     print "AA(LEN)([F0V, F1V, F2V]) =", AA(LEN)([F0V, F1V, F2V])
-    V = model[0]
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F2V[:-4])) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F1V)) ))
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F0V+F1V+F2V[:-4])) ))
