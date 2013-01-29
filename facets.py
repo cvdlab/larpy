@@ -1,86 +1,11 @@
-# algoritmo estrazione faccette
-# =============================
-
 from lar import *
 
-# input:  matrice caratteristica $M_d$;
-# output:  matrice caratteristica $M_{d-1}$.
-
-
-def larFacets(model,dim=3,grid=False):
-    """
-    Estraction of (d-1)-cellFacets from model := (V,d-cells)
-    Return (V, (d-1)-cellFacets)
-    """
-    V,cells,csr,csrAdjSquareMat,facets = setup(model,dim)
-    cellFacets = []
-    internalCellNumber = len(cells)
-    #if not grid: internalCellNumber -= 1
-    if not grid: internalCellNumber -= 2*dim
-    # for each input cell i
-    for i in range(internalCellNumber):
-        adjCells = csrAdjSquareMat[i].tocoo()
-        cell1 = csr[i].tocoo().col
-        pairs = zip(adjCells.col,adjCells.data)
-        for j,v in pairs:
-            if (i!=j):
-                cell2 = csr[j].tocoo().col
-                cell = list(set(cell1).intersection(cell2))
-                cellFacets.append(sorted(cell))
-    # sort and remove duplicates
-    cellFacets = sorted(cellFacets)
-    cellFacets = [facet for k,facet in enumerate(cellFacets[:-1]) if facet != cellFacets[k+1]] + [cellFacets[-1]]
-    return V,cellFacets
-
-def larSkeletons (model,dim=3,grid=False):
-    """
-    Estraction of all skeletons from model := (V,d-cells)
-    Return (V, [d-cells, (d-1)-cells, ..., 1-cells]) where p-cells is a list_of_lists_of_integers
-    """
-    faces = []
-    faces.append(model[1])
-    for p in range(dim,0,-1):
-        flag = grid and (p==dim)
-        model = larFacets(model,dim=p,grid=flag)
-        faces.append(model[1])
-    return model[0], REVERSE(faces)
-
-
-
-def boundarGrid(model,minPoint,maxPoint):
-    dim = len(minPoint)
-    # boundary points extraction
-    outerCells = [[] for k in range(2*dim)]
-    for n,point in enumerate(model[0]):
-        for h,coord in enumerate(point):
-            if coord == minPoint[h]: outerCells[h].append(n)
-            if coord == maxPoint[h]: outerCells[dim+h].append(n)
-    return outerCells
-
-
 """
-Predicate to test wheather 
+    Examples of skeleton and facets extraction via topological methods.
+    Only grid (cuboidal and simplicial) examples are provided.
+    
+    TODO: further (general) examples needed: e.g. Voronoi complexes.
 """
-def gridTest(bounds, relativeCoords=True):
-    if relativeCoords: 
-        bounds = [ [0] + PROGRESSIVESUM([0]+bound) for bound in list(abs(scipy.array(bounds))) ]
-        print "\nbounds =",bounds
-    def gridTest0(point):
-        return OR(AA(EQ)(CAT(AA(DISTR)(TRANS([bounds,point])))))
-    return gridTest0
-
-gridTest([[1,1,1],[1,1,1]])([1,1])
-  
-  
-
-def test (bounds):
-    """
-    Look whether v is on the boundary of a unconnected (multi-dim) interval [vmin_0,vmax_0, ... ,vmin_n,vmax_n]
-    Return a Boolean value
-    """
-    def test0 (v):
-        return OR(AA(EQ)(CAT(AA(TRANS)(DISTR([bounds,v])))))
-    return test0
 
 
 if __name__=="__main__":
@@ -99,7 +24,7 @@ if __name__=="__main__":
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cubes)))
     # test data (3D cuboidal complex)
     V = VERTS([interval,interval,interval])
-    outverts = [[ k for k,v in enumerate(V) if test([V[0],V[-1]])(V[k]) ]]
+    outverts = [[ k for k,v in enumerate(V) if outerVertexTest([V[0],V[-1]])(V[k]) ]]
     F3V = cubes[1]+ outverts
     # OK
     
@@ -138,7 +63,7 @@ if __name__=="__main__":
     squares = larProduct([mod_1,mod_1])
 
     V = VERTS([interval,interval])
-    outverts = [[ k for k,v in enumerate(V) if test([V[0],V[-1]])(V[k]) ]]
+    outverts = [[ k for k,v in enumerate(V) if outerVertexTest([V[0],V[-1]])(V[k]) ]]
     F2V = squares[1]+ outverts
     
     model = (V,F2V)

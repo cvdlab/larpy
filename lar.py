@@ -694,7 +694,7 @@ def larFacets(model,dim=3):
 # extraction of skeletons of a cell complex
 
 
-def larSkeletons (model,dim=3):
+def larSkeletons (model,dim=3,grid=False):
     """
         Estraction of all skeletons from model := (V,d-cells)
         Return (V, [d-cells, (d-1)-cells, ..., 1-cells]) where p-cells is a list_of_lists_of_integers
@@ -702,9 +702,61 @@ def larSkeletons (model,dim=3):
     faces = []
     faces.append(model[1])
     for p in range(dim,0,-1):
-        model = larFacets(model,dim=p)
+        flag = grid and (p==dim)
+        model = larFacets(model,dim=p,grid=flag)
         faces.append(model[1])
     return model[0], REVERSE(faces)
+
+
+def larFacets(model,dim=3,grid=False):
+    """
+        Estraction of (d-1)-cellFacets from model := (V,d-cells)
+        Return (V, (d-1)-cellFacets)
+        """
+    V,cells,csr,csrAdjSquareMat,facets = setup(model,dim)
+    cellFacets = []
+    internalCellNumber = len(cells)
+    #if not grid: internalCellNumber -= 1
+    if not grid: internalCellNumber -= 2*dim
+    # for each input cell i
+    for i in range(internalCellNumber):
+        adjCells = csrAdjSquareMat[i].tocoo()
+        cell1 = csr[i].tocoo().col
+        pairs = zip(adjCells.col,adjCells.data)
+        for j,v in pairs:
+            if (i!=j):
+                cell2 = csr[j].tocoo().col
+                cell = list(set(cell1).intersection(cell2))
+                cellFacets.append(sorted(cell))
+    # sort and remove duplicates
+    cellFacets = sorted(cellFacets)
+    cellFacets = [facet for k,facet in enumerate(cellFacets[:-1]) if facet != cellFacets[k+1]] + [cellFacets[-1]]
+    return V,cellFacets
+
+
+def boundarGrid(model,minPoint,maxPoint):
+    """
+        Build the set of the outerCells of a cuboidal model.
+        Return a list of (degenerate) d-cells
+        """
+    dim = len(minPoint)
+    # boundary points extraction
+    outerCells = [[] for k in range(2*dim)]
+    for n,point in enumerate(model[0]):
+        for h,coord in enumerate(point):
+            if coord == minPoint[h]: outerCells[h].append(n)
+            if coord == maxPoint[h]: outerCells[dim+h].append(n)
+    return outerCells
+
+
+def outerVertexTest (bounds):
+    """
+        Look whether v is on the boundary of a unconnected (multi-dim) interval [vmin_0,vmax_0, ... ,vmin_n,vmax_n]
+        Return a Boolean value
+        """
+    def test0 (v):
+        return OR(AA(EQ)(CAT(AA(TRANS)(DISTR([bounds,v])))))
+    return test0
 
 
 
