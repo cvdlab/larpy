@@ -67,7 +67,11 @@ boundary = STRUCT(CONS(AA(MAP)(boundaryMaps))(dom1D))
 VIEW(boundary)
 
 
-edges = larFacets((V,FV),dim=3)
+"""
+# test of possible extensions
+# -----------------------------------------------------------------------------
+
+edges = larFacets((V,FV),dim=2)
 vertices = larFacets((V,EV),dim=1)
 VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(vertices)))
 
@@ -118,3 +122,4 @@ csrBoundary_2 = larBoundary(EV,FV)
 print "\ncsrBoundary_1 =", csrToMatrixRepresentation(csrBoundary_1)
 print "\ncsrBoundary_2 =", csrToMatrixRepresentation(csrBoundary_2)
 csrToMatrixRepresentation(csrProduct(csrProduct(csrBoundary_1,csrBoundary_2),csrCreate([[0],[0]])))
+"""

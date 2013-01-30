@@ -30,6 +30,7 @@ from scipy.sparse import vstack,hstack,csr_matrix,lil_matrix,triu
 from scipy.spatial import Delaunay
 from scipy.linalg import *
 from pyplasm import *
+from matrixutil import *
 
 self_test=False
 
