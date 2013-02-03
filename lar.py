@@ -506,6 +506,7 @@ if __name__ == "__main__" and self_test:
 
 #------------------------------------------------------------------
 # FV = d-chain;  EV = (d-1)-chain
+
 def larBoundary(EV,FV):
     e = len(EV)
     f = len(FV)
@@ -518,7 +519,7 @@ def larBoundary(EV,FV):
 
 if __name__ == "__main__" and self_test:
     print "\n>>> larBoundary"
-    csrBoundary_2 = larBoundary(FV,EV)
+    csrBoundary_2 = larBoundary(EV,FV)
     print "\ncsrBoundary.T =\n", csrToMatrixRepresentation(csrBoundary_2.T)
     print "\ncsrBoundary_2.T =\n", csrToBrc(csrBoundary_2.T)
     print "\ncsrcoBoundary_1.T =\n", csrToBrc(csrBoundary_2)
