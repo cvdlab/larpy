@@ -1,6 +1,7 @@
 from lar import *
 
 
+
 #-------------------------------------------------------------------
 # dimension-independent conversion from discrete image to LAR
 
@@ -74,4 +75,33 @@ V = model[0]
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V[:-4])) ))
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V[:-4])) ))
+
+
+#-------------------------------------------------------------------
+# boundaries extraction
+
+csrBoundary_2 = larBoundary(F1V,F2V)
+print "\ncsrBoundary_2.shape =", csrBoundary_2.shape
+chain_1 = larBoundaryChain(csrBoundary_2,range(38))
+print "\nchain_1.T =", csrToMatrixRepresentation(chain_1.T)
+_1cells = csrExtractAllGenerators(csrBoundary_2)
+print "\n_1cells =", _1cells        # list of 2-cells, given as lists of (boundary) 1-cells
+
+# boundary 1-chain computation
+boundary_1_cells = csrChainToCellList( chain_1 )
+print "\nboundary_1_cells =\n",boundary_1_cells
+# boundary 1-chain visualization
+boundary1D = AA(POLYLINE)([[V[v] for v in F1V[e]] for e in boundary_1_cells ])
+VIEW(EXPLODE(1.2,1.2,1.2)(boundary1D))
+View(SOLIDIFY(T([1,2])([-301.0, -406.0])(STRUCT(boundary1D))))
+
+chain_2 = larBoundaryChain(csrBoundary_2,range(38,len(F2V[:-4])))
+# boundary 1-chain computation
+boundary_1_void = csrChainToCellList( chain_2 )
+print "\nboundary_1_cells =\n",boundary_1_void
+# boundary 1-chain visualization
+boundary1D = AA(POLYLINE)([[V[v] for v in F1V[e]] for e in boundary_1_void ])
+VIEW(EXPLODE(1.2,1.2,1.2)(boundary1D))
+MED([1,2])(STRUCT(boundary1D))
+VIEW(SOLIDIFY(T([1,2])([-301.0, -406.0])(STRUCT(boundary1D))))
 

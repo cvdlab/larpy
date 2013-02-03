@@ -38,6 +38,13 @@ self_test=False
 #--geometry layer (using PyPlasm)----------------------------------
 #------------------------------------------------------------------
 
+def View (model):
+    dims = range(1,1+RN(model))
+    center = MED(dims)(model)
+    model = T(dims)(SCALARVECTPROD([-1,center]))(model)
+    VIEW(ROTN([-PI/3,[1,-1,0]])(R([1,2])(-PI/4)(model)))
+
+
 def bezier(points):
     """
         To create a Bezier curve of degree n from a list of n+1 d-points.
