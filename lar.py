@@ -404,6 +404,11 @@ def csrBinFilter(CSRm):
     coo = CSRm.tocoo()
     triples = [[row,col,1] for row,col,val in zip(coo.row,coo.col,coo.data)
                if val % 2 == 1]
+    if triples == []:
+        try:
+            raise KeyboardInterrupt
+        finally:
+            print('maybe Boundary of boundary is zero?')
     i, j, data = TRANS(triples)
     CSRm = scipy.sparse.coo_matrix((data,(i,j)),CSRm.shape).tocsr()
     return CSRm
@@ -536,7 +541,10 @@ def larBoundaryChain(csrBoundaryMat,brcCellList):
     n = csrGetNumberOfColumns(csrBoundaryMat)
     csrChain = sum([csrCreateUnitChain(n,k) for k in brcCellList])
     print "\nchain =", csrToMatrixRepresentation(csrChain)
-    return csrBinFilter(csrProduct(csrBoundaryMat,csrChain))
+    print "\ncsrBoundaryMat.shape,csrChain.shape =", csrBoundaryMat.shape,csrChain.shape
+    csrmat = csrProduct(csrBoundaryMat,csrChain)
+    print "\ncsrmat.shape =", csrmat.shape
+    return csrBinFilter(csrmat)
 
 if __name__ == "__main__" and self_test:
     print "\n>>> larBoundaryChain"
