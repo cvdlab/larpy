@@ -6,6 +6,7 @@ import mahotas
 from scipy import ndimage
 from random import random
 from copy import copy
+from pyplasm import *
 
 """
    Decomposition of a 2D image into rectangular blocks.
@@ -36,6 +37,10 @@ def ybar(span,yspan):
     if yM < yMAX and image[x0,yM+1] == pointValue: yM += 1
     return x0,ym,y0,yM
 
+def delta(p,q): # area of rectangle (q,p)
+    vect = AA(abs)(VECTDIFF([p,q]))
+    return vect[0] * vect[1]
+
 
 # Input of image
 
@@ -45,6 +50,7 @@ mask0 = copy(image)
 mask1 = scipy.ones((imWidth,imHeight),dtype=image.dtype)
 mask2 = scipy.ones((imWidth,imHeight),dtype=image.dtype)
 mask3 = scipy.zeros((imWidth,imHeight),dtype=image.dtype)
+mask = scipy.zeros((imWidth,imHeight),dtype=int)
 
 # Generation of a random point
 
@@ -65,7 +71,6 @@ while cross != crossGrow(cross):
 xm,x0,xM,ym,y0,yM = cross
 xspan = xm,xM
 yspan = ym,yM
-print "\n x0,y0, xspan, yspan =", (x0,y0, xspan, yspan)
 
 # Draw the computed subimage of the point (by value inversion)
 
@@ -88,7 +93,6 @@ for y in range(Y0,Y1+1):
     while span != xbar(span,xspan):
         span = xbar(span,xspan)
     xm,x,xM,y = span
-    print " x,y, xspan =", (x,y, (xm,xM))
     # drawing of a span
     for x in range(xm,xM+1): mask1[x,y] = not(mask1[x,y])
 pylab.imshow(mask1)
@@ -102,18 +106,67 @@ for x in range(X0,X1+1):
     while span != ybar(span,yspan):
         span = ybar(span,yspan)
     x,ym,y,yM = span
-    print " x,y, yspan =", (x,y, (ym,yM))
     # drawing of a span
     for y in range(ym,yM+1): mask2[x,y] = not(mask2[x,y])
-
-print "\n x0,y0, xspan, yspan =", (x0,y0, xspan, yspan)
-
 pylab.imshow(mask2)
 pylab.show()
 
+# Visible set: intersection of 1D bar-charts of the point
+
 for x in range(X0,X1+1):
     for y in range(Y0,Y1+1):
-        mask3[x,y] = not(mask1[x,y]) and not(mask2[x,y])
-
+        mask3[x,y] = not(mask1[x,y]) and not(mask2[x,y])  # BUG (check ! )
 pylab.imshow(mask3)
 pylab.show()
+
+# Computation of weights of visible set
+
+x0,y0 = p
+spans = []
+for x in range(X0,X1+1):
+    span = x,y0,y0,y0
+    while span != ybar(span,yspan):
+        span = ybar(span,yspan)
+    spans += [span]
+
+for span in spans:
+    x,ym,y,yM = span
+    for y in range(ym,yM+1):
+        mask[x,y] = delta(p,(x,y))
+print "\nmask =\n", mask[X0:(X1+1),Y0:(Y1+1)]
+
+
+# Sorting of visible subregions
+
+def sortVisible(p,xspan,yspan):
+    subregions = []
+    (x0,y0),(X0,X1),(Y0,Y1) = p,xspan,yspan
+    subregions = []
+    subregion = []
+    for x in range(X0,x0+1):
+        for y in range(Y0,y0+1):
+            subregion += [[mask[x,y],x,y]]
+    subregions += [sorted(subregion,reverse=True)[0]]
+    subregion = []
+    for x in range(x0,X1+1):
+        for y in range(Y0,y0+1):
+            subregion += [[mask[x,y],x,y]]
+    subregions += [sorted(subregion,reverse=True)[0]]
+    subregion = []
+    for x in range(X0,x0+1):
+        for y in range(y0,Y1+1):
+            subregion += [[mask[x,y],x,y]]
+    subregions += [sorted(subregion,reverse=True)[0]]
+    subregion = []
+    for x in range(x0,X1+1):
+        for y in range(y0,Y1+1):
+            subregion += [[mask[x,y],x,y]]
+    subregions += [sorted(subregion,reverse=True)[0]]
+    return subregions
+
+subregions = sortVisible(p,xspan,yspan)
+
+# block generation and possible join
+
+
+
