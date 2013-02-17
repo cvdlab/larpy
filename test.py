@@ -17,6 +17,8 @@ boundary = [ [[276,381],[326,381]], [[276,381],[276,431]], [[276,431],[326,431]]
 print "\nblocks =", blocks
 View(EXPLODE(1.2,1.2,1.2)([T([1,2])(rect[:2])(CUBOID(rect[2:])) for rect in rects]))
 
+
+
 #-------------------------------------------------------------------
 # random generation of 3D image data
 
