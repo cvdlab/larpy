@@ -13,47 +13,48 @@ from copy import copy
 """
 def crossGrow(cross):
     xm,x,xM,ym,y,yM = cross
-    pointValue = test[x,y]
-    if xm > 0 and test[xm-1,y] == pointValue: xm -= 1
-    if xM < 49 and test[xM+1,y] == pointValue: xM += 1
-    if ym > 0 and test[x,ym-1] == pointValue: ym -= 1
-    if yM < 49 and test[x,yM+1] == pointValue: yM += 1
+    pointValue = image[x,y]
+    if xm > 0 and image[xm-1,y] == pointValue: xm -= 1
+    if xM < 49 and image[xM+1,y] == pointValue: xM += 1
+    if ym > 0 and image[x,ym-1] == pointValue: ym -= 1
+    if yM < 49 and image[x,yM+1] == pointValue: yM += 1
     return xm,x,xM,ym,y,yM
 
 def xbar(span,xspan):
     xm,x0,xM,y0 = span
     xmin,xMAX = xspan
-    pointValue = test[x0,y0]
-    if xm > xmin and test[xm-1,y0] == pointValue: xm -= 1
-    if xM < xMAX and test[xM+1,y0] == pointValue: xM += 1
+    pointValue = image[x0,y0]
+    if xm > xmin and image[xm-1,y0] == pointValue: xm -= 1
+    if xM < xMAX and image[xM+1,y0] == pointValue: xM += 1
     return xm,x0,xM,y0
 
 def ybar(span,yspan):
     x0,ym,y0,yM = span
     ymin,yMAX = yspan
-    pointValue = test[x0,y0]
-    if ym > ymin and test[x0,ym-1] == pointValue: ym -= 1
-    if yM < yMAX and test[x0,yM+1] == pointValue: yM += 1
+    pointValue = image[x0,y0]
+    if ym > ymin and image[x0,ym-1] == pointValue: ym -= 1
+    if yM < yMAX and image[x0,yM+1] == pointValue: yM += 1
     return x0,ym,y0,yM
 
 
 # Input of image
 
-test = mahotas.imread('test1.bmp')
-imWidth,imHeight = test.shape
-mask0 = copy(test)
-mask1 = scipy.ones((imWidth,imHeight),dtype=test.dtype)
-mask2 = scipy.ones((imWidth,imHeight),dtype=test.dtype)
+image = mahotas.imread('test1.bmp')
+imWidth,imHeight = image.shape
+mask0 = copy(image)
+mask1 = scipy.ones((imWidth,imHeight),dtype=image.dtype)
+mask2 = scipy.ones((imWidth,imHeight),dtype=image.dtype)
+mask3 = scipy.zeros((imWidth,imHeight),dtype=image.dtype)
 
 # Generation of a random point
 
 p = int(imWidth*random()),int(imWidth*random())
 # reverse p value, in order to show
-test[p] = not(test[p])
-pylab.imshow(test)
+image[p] = not(image[p])
+pylab.imshow(image)
 pylab.show()
 # reverse back p value to its original value
-test[p] = not(test[p])
+image[p] = not(image[p])
 
 # Computation of the sub-image of a point
 
@@ -70,16 +71,16 @@ print "\n x0,y0, xspan, yspan =", (x0,y0, xspan, yspan)
 
 for x in range(xm,xM+1):
     for y in range(ym,yM+1):
-        mask0[x,y] = not(test[x,y])
-for x in range(xm,xM+1): mask0[x,y0] = test[x,y0]
-for y in range(ym,yM+1): mask0[x0,y] = test[x0,y]
+        mask0[x,y] = not(image[x,y])
+for x in range(xm,xM+1): mask0[x,y0] = image[x,y0]
+for y in range(ym,yM+1): mask0[x0,y] = image[x0,y]
 
 pylab.imshow(mask0)
 pylab.show()
 
 # Computation of the 1D bar-charts of the point
 
-pointValue = test[p]
+pointValue = image[p]
 x0,y0 = p
 Y0,Y1 = yspan
 for y in range(Y0,Y1+1):
@@ -93,7 +94,7 @@ for y in range(Y0,Y1+1):
 pylab.imshow(mask1)
 pylab.show()
 
-pointValue = test[p]
+pointValue = image[p]
 x0,y0 = p
 X0,X1 = xspan
 for x in range(X0,X1+1):
@@ -110,3 +111,9 @@ print "\n x0,y0, xspan, yspan =", (x0,y0, xspan, yspan)
 pylab.imshow(mask2)
 pylab.show()
 
+for x in range(X0,X1+1):
+    for y in range(Y0,Y1+1):
+        mask3[x,y] = not(mask1[x,y]) and not(mask2[x,y])
+
+pylab.imshow(mask3)
+pylab.show()
