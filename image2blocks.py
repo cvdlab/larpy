@@ -136,7 +136,7 @@ for span in spans:
 print "\nmask =\n", mask[X0:(X1+1),Y0:(Y1+1)]
 
 
-# Sorting of visible subregions
+# Sorting pixels of visible subregions
 
 def sortVisible(p,xspan,yspan):
     subregions = []
@@ -168,5 +168,18 @@ subregions = sortVisible(p,xspan,yspan)
 
 # block generation and possible join
 
+x,y = subregions[0][1:]
+dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
+block00 = [x,y] + [dx+1,dy]
+x,y = subregions[1][1:]
+dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
+block01 = [x0,y] + [dx,dy]
+x,y = subregions[2][1:]
+dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
+block10 = [x,y0-1] + [dx+1,dy+1]
+x,y = subregions[3][1:]
+dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
+block11 = [x0,y0-1] + [dx,dy+1]
 
+print "\nblock00,block01,block10,block11 =", (block00,block01,block10,block11)
 
