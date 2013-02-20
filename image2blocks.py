@@ -41,11 +41,15 @@ def delta(p,q): # area of rectangle (q,p)
     vect = AA(abs)(VECTDIFF([p,q]))
     return vect[0] * vect[1]
 
+insideBlocks = []
+outsideBlocks = []
 
 # Input of image
 
 image = mahotas.imread('test1.bmp')
 imWidth,imHeight = image.shape
+Inside = copy(image)
+Outside = copy(image)
 mask0 = copy(image)
 mask1 = scipy.ones((imWidth,imHeight),dtype=image.dtype)
 mask2 = scipy.ones((imWidth,imHeight),dtype=image.dtype)
@@ -62,6 +66,11 @@ pylab.show()
 # reverse back p value to its original value
 image[p] = not(image[p])
 
+# field value of p
+
+outsidePoint = image[p]
+print "\noutsidePoint =",outsidePoint
+
 # Computation of the sub-image of a point
 
 x0,y0 = p
@@ -74,11 +83,18 @@ yspan = ym,yM
 
 # Draw the computed subimage of the point (by value inversion)
 
-for x in range(xm,xM+1):
-    for y in range(ym,yM+1):
-        mask0[x,y] = not(image[x,y])
-for x in range(xm,xM+1): mask0[x,y0] = image[x,y0]
-for y in range(ym,yM+1): mask0[x0,y] = image[x0,y]
+if outsidePoint:
+    for x in range(xm,xM+1):
+        for y in range(ym,yM+1):
+            mask0[x,y] = not(Outside[x,y])
+    for x in range(xm,xM+1): mask0[x,y0] = Outside[x,y0]
+    for y in range(ym,yM+1): mask0[x0,y] = Outside[x0,y]
+else:
+    for x in range(xm,xM+1):
+        for y in range(ym,yM+1):
+            mask0[x,y] = not(Inside[x,y])
+    for x in range(xm,xM+1): mask0[x,y0] = Inside[x,y0]
+    for y in range(ym,yM+1): mask0[x0,y] = Inside[x0,y]
 
 pylab.imshow(mask0)
 pylab.show()
@@ -87,6 +103,7 @@ pylab.show()
 
 pointValue = image[p]
 x0,y0 = p
+
 Y0,Y1 = yspan
 for y in range(Y0,Y1+1):
     span = x0,x0,x0,y
@@ -98,8 +115,6 @@ for y in range(Y0,Y1+1):
 pylab.imshow(mask1)
 pylab.show()
 
-pointValue = image[p]
-x0,y0 = p
 X0,X1 = xspan
 for x in range(X0,X1+1):
     span = x,y0,y0,y0
@@ -167,19 +182,20 @@ def sortVisible(p,xspan,yspan):
 subregions = sortVisible(p,xspan,yspan)
 
 # block generation (with corrections to eliminate the pixel area)
+# [check border conditions:  possible BUG]
 
 x,y = subregions[0][1:]
 dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-block00 = [x,y] + [dx+1,dy]
+block00 = [x,y] + [dx,dy]
 x,y = subregions[1][1:]
 dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
 block10 = [x0,y] + [dx,dy]
 x,y = subregions[2][1:]
 dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-block01 = [x,y0-1] + [dx+1,dy+1]
+block01 = [x,y0] + [dx,dy]
 x,y = subregions[3][1:]
 dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-block11 = [x0,y0-1] + [dx,dy+1]
+block11 = [x0,y0] + [dx,dy]
 
 print "\nblock00,block01,block10,block11 =", (block00,block10,block01,block11)
 
@@ -237,3 +253,15 @@ print "\nblocks =", blocks
 
 # write blocks to a file in SVG format
 
+if outsidePoint: outsideBlocks += blocks
+else: insideBlocks += blocks
+blockImage = outsideBlocks + insideBlocks
+
+def block(data):
+	x,y,dx,dy = data
+	return T([1,2])([x,y])(CUBOID([dx,dy]))
+
+solid = AA(COLOR(BLACK))(AA(SKELETON(1))(AA(block)(insideBlocks)))
+empty = AA(COLOR(WHITE))(AA(SKELETON(1))(AA(block)(outsideBlocks)))
+
+VIEW(STRUCT(solid + empty))
