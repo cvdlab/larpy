@@ -166,20 +166,74 @@ def sortVisible(p,xspan,yspan):
 
 subregions = sortVisible(p,xspan,yspan)
 
-# block generation and possible join
+# block generation (with corrections to eliminate the pixel area)
 
 x,y = subregions[0][1:]
 dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
 block00 = [x,y] + [dx+1,dy]
 x,y = subregions[1][1:]
 dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-block01 = [x0,y] + [dx,dy]
+block10 = [x0,y] + [dx,dy]
 x,y = subregions[2][1:]
 dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-block10 = [x,y0-1] + [dx+1,dy+1]
+block01 = [x,y0-1] + [dx+1,dy+1]
 x,y = subregions[3][1:]
 dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
 block11 = [x0,y0-1] + [dx,dy+1]
 
-print "\nblock00,block01,block10,block11 =", (block00,block01,block10,block11)
+print "\nblock00,block01,block10,block11 =", (block00,block10,block01,block11)
+
+# possible joins of the four blocks (Block = [x,y,dx,dy])
+
+"""
+    if 0010 and 0111 and 0001 and 1011: A
+    elif 0010 and 0111: B
+    elif 0010: D
+    elif 0111: E
+    elif 0001 and 1011: C
+    elif 0001: F
+    elif 1011: G
+    else H
+"""
+pred_0010 = block00[3] == block10[3]
+pred_0111 = block01[3] == block11[3]
+pred_0001 = block00[2] == block01[2]
+pred_1011 = block10[2] == block11[2]
+
+block_A = copy(block00)
+block_A[2] = block00[2] + block10[2]
+block_A[3] = block00[3] + block01[3]
+block_a = copy(block00)
+block_a[2] = block00[2] + block10[2]
+block_b = copy(block01)
+block_b[2] = block01[2] + block11[2]
+block_c = copy(block00)
+block_c[3] = block00[3] + block01[3]
+block_d = copy(block10)
+block_d[3] = block10[3] + block11[3]
+
+blocks = []
+if pred_0010 and pred_0111 and pred_0001 and pred_1011:
+	blocks = [block_A]
+else:
+    if pred_0010 and pred_0111:
+        blocks = [block_a,block_b]
+    elif pred_0001 and pred_1011:
+        blocks = [block_c,block_d]
+
+    else:
+        if blocks == [] and pred_0010:
+            blocks = [block_a,block01,block11]
+        elif blocks == [] and pred_0111:
+            [block_b,block00,block10]
+
+        elif blocks == [] and pred_0001:
+            blocks = [block_c,block10,block11]
+        elif blocks == [] and pred_1011:
+            blocks = [block_d,block00,block01]
+
+if blocks == []: blocks = [block00,block10,block01,block11]
+print "\nblocks =", blocks
+
+# write blocks to a file in SVG format
 
