@@ -14,8 +14,9 @@ rects = solids + voids
 
 blocks = [[[rect[0],rect[1]],[rect[0]+rect[2], rect[1]+rect[3]]] for rect in rects]
 boundary = [ [[276,381],[326,381]], [[276,381],[276,431]], [[276,431],[326,431]], [[326,326],[326,431]] ]
-print "\nblocks =", blocks
-View(EXPLODE(1.2,1.2,1.2)([T([1,2])(rect[:2])(CUBOID(rect[2:])) for rect in rects]))
+
+VIEW(STRUCT([COLOR(BLUE)(STRUCT([T([1,2])(rect[:2])(CUBOID(rect[2:])) for rect in solids])),
+COLOR(RED)(STRUCT([T([1,2])(rect[:2])(CUBOID(rect[2:])) for rect in voids]))]))
 
 
 
