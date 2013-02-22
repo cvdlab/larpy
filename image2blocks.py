@@ -100,7 +100,7 @@ while True:
         p = pointSelection(Points)
         #p = 39,48
     else: break
-    print "\np =",p
+    #print "\np =",p
     if Points[p] != 0:
         # reverse p value, in order to show
         image[p] = not(image[p])
@@ -114,7 +114,7 @@ while True:
         outsidePoint = image[p]
         if outsidePoint: theImage = Outside
         else: theImage = Inside
-        print "\noutsidePoint =",outsidePoint
+        #print "\noutsidePoint =",outsidePoint
 
         # Computation of the sub-image of a point
 
@@ -181,10 +181,8 @@ while True:
         for x in range(X0,X1+1):
             for y in range(Y0,Y1+1):
                 if Inside[p]:
-                    print "inside"
                     mask3[x,y] = not(not(mask1[x,y]) and not(mask2[x,y]))
                 elif Outside[p]:
-                    print "outside"
                     mask3[x,y] = not(mask1[x,y] and mask2[x,y])
         #pylab.imshow(mask3)
         #pylab.show()
@@ -204,7 +202,7 @@ while True:
             for y in range(ym,yM+1):
                 if not(mask3[x,y]):
                     mask[x,y] = delta(p,(x,y))
-        print "\nmask =\n", mask[X0:(X1+1),Y0:(Y1+1)]
+        #print "\nmask =\n", mask[X0:(X1+1),Y0:(Y1+1)]
 
 
         # Sorting pixels of visible subregions
@@ -272,7 +270,7 @@ while True:
         block01 = [x01,y0] + [dx01,dy01]
         block11 = [x0,y0] + [dx11,dy11]
 
-        print "\nblock00,block01,block10,block11 =", (block00,block10,block01,block11)
+        #print "\nblock00,block01,block10,block11 =", (block00,block10,block01,block11)
         
         # 
 
@@ -326,7 +324,7 @@ while True:
                     blocks = [block_d,block00,block01]
 
         if blocks == []: blocks = [block00,block10,block01,block11]
-        print "\nblocks =", blocks
+        #print "\nblocks =", blocks
 
         # filter out empty boxes
     
@@ -359,13 +357,13 @@ while True:
             return T([1,2])([x,y])(rectangle)
         
         if insideBlocks != []:
-            solids = AA(COLOR(BLACK))(AA(ID
-                                         #SKELETON(1)
+            solids = AA(COLOR(BLACK))(AA(#ID
+                                         SKELETON(1)
                                         )(AA(block)(insideBlocks)))
         else: solids = []
         if outsideBlocks != []:
-            voids = AA(COLOR(WHITE))(AA(ID
-                                        #SKELETON(1)
+            voids = AA(COLOR(WHITE))(AA(#ID
+                                        SKELETON(1)
                                         )(AA(block)(outsideBlocks)))
         else: voids = []
 
