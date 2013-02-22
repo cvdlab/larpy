@@ -70,7 +70,7 @@ Outside = copy(image)
 
 # Initialization of the sparse matrix used as query point storage
 
-Points = csrCreate([range(imWidth) for k in range(imHeight)]).tolil()
+Points = lil_matrix(csrCreate([range(imWidth) for k in range(imHeight)]), dtype=int)
 
 def pointSelection(Points):
     indices = np.nonzero(Points)
@@ -86,7 +86,8 @@ def pointSelection(Points):
 
 # Generation of a random point
 
-for k in range(500):
+while True:
+#for k in range(1):
     
     mask0 = copy(image)
     mask1 = scipy.ones((imWidth,imHeight),dtype=image.dtype)
@@ -97,6 +98,7 @@ for k in range(500):
     #p = int(imWidth*random()),int(imWidth*random())
     if Points.nnz != 0:
         p = pointSelection(Points)
+        #p = 20,39
     else: break
     print "\np =",p
     if Points[p] != 0:
@@ -232,23 +234,41 @@ for k in range(500):
         # block generation (with corrections to eliminate the pixel area)
         # [check border conditions:  possible BUG]
 
-        x,y = subregions[0][1:]
-        dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-        block00 = [x,y] + [dx,dy]
-        x,y = subregions[1][1:]
-        x = x+1
-        dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-        block10 = [x0,y] + [dx,dy]
-        x,y = subregions[2][1:]
-        y = y+1
-        dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-        block01 = [x,y0] + [dx,dy]
-        x,y = subregions[3][1:]
-        x,y = x+1,y+1
-        dx,dy = AA(abs)(VECTDIFF([(x,y),(x0,y0)]))
-        block11 = [x0,y0] + [dx,dy]
+        x00,y00 = subregions[0][1:]
+        x10,y10 = subregions[1][1:]
+        x10 = x10+1
+        x01,y01 = subregions[2][1:]
+        y01 = y01+1
+        x11,y11 = subregions[3][1:]
+        x11,y11 = x11+1,y11+1
+        
+        # modify position for pixel origin, to maximize cross covering
+        def pixelOrigin(x0,y0, x00,y00, x10,y10, x01,y01, x11,y11):
+            def area (x0,y0):
+                return abs((x00-x0)*(y00-y0) + (x10-x0)*(y10-y0) + (x01-x0)*(y01-y0) + (x11-x0)*(y11-y0))
+            areas  = [ (area(x0,y0), (x0,y0)) ]
+            areas += [ (area(x0+1,y0), (x0+1,y0)) ]
+            areas += [ (area(x0,y0+1), (x0,y0+1)) ]
+            areas += [ (area(x0+1,y0+1), (x0+1,y0+1)) ]
+            best = sorted(areas)[-1]
+            x0,y0 = best[1]
+            return x0,y0
+        
+        x0,y0 = pixelOrigin(x0,y0, x00,y00, x10,y10, x01,y01, x11,y11)
+        
+        dx00,dy00 = AA(abs)(VECTDIFF([(x00,y00),(x0,y0)]))
+        dx10,dy10 = AA(abs)(VECTDIFF([(x10,y10),(x0,y0)]))
+        dx01,dy01 = AA(abs)(VECTDIFF([(x01,y01),(x0,y0)]))
+        dx11,dy11 = AA(abs)(VECTDIFF([(x11,y11),(x0,y0)]))
+
+        block00 = [x00,y00] + [dx00,dy00]
+        block10 = [x0,y10] + [dx10,dy10]
+        block01 = [x01,y0] + [dx01,dy01]
+        block11 = [x0,y0] + [dx11,dy11]
 
         print "\nblock00,block01,block10,block11 =", (block00,block10,block01,block11)
+        
+        # 
 
         # possible joins of the four blocks (Block = [x,y,dx,dy])
 
@@ -329,15 +349,15 @@ for k in range(500):
             return T([1,2])([x,y])(rectangle)
         
         if insideBlocks != []:
-            solid = AA(COLOR(BLACK))(AA(ID#SKELETON(1)
+            solids = AA(COLOR(BLACK))(AA(ID#SKELETON(1)
                                         )(AA(block)(insideBlocks)))
-        else: solid = []
+        else: solids = []
         if outsideBlocks != []:
-            empty = AA(COLOR(WHITE))(AA(ID#SKELETON(1)
+            voids = AA(COLOR(WHITE))(AA(ID#SKELETON(1)
                                         )(AA(block)(outsideBlocks)))
-        else: empty = []
+        else: voids = []
 
-View(STRUCT([T(3)(-0.1)(IMAGE), STRUCT(solid+empty)]))
+View(STRUCT([T(3)(-0.1)(IMAGE), STRUCT(solids + voids)]))
 print "\nsolid =",insideBlocks
 print "\nempty =",outsideBlocks
 print "\nlen(insideBlocks+outsideBlocks) =",len(insideBlocks+outsideBlocks)
