@@ -98,7 +98,7 @@ while True:
     #p = int(imWidth*random()),int(imWidth*random())
     if Points.nnz != 0:
         p = pointSelection(Points)
-        #p = 20,39
+        #p = 39,48
     else: break
     print "\np =",p
     if Points[p] != 0:
@@ -180,7 +180,12 @@ while True:
 
         for x in range(X0,X1+1):
             for y in range(Y0,Y1+1):
-                mask3[x,y] = not(mask1[x,y] and mask2[x,y]) 
+                if Inside[p]:
+                    print "inside"
+                    mask3[x,y] = not(not(mask1[x,y]) and not(mask2[x,y]))
+                elif Outside[p]:
+                    print "outside"
+                    mask3[x,y] = not(mask1[x,y] and mask2[x,y])
         #pylab.imshow(mask3)
         #pylab.show()
 
@@ -197,7 +202,8 @@ while True:
         for span in spans:
             x,ym,y,yM = span
             for y in range(ym,yM+1):
-                mask[x,y] = delta(p,(x,y))
+                if not(mask3[x,y]):
+                    mask[x,y] = delta(p,(x,y))
         print "\nmask =\n", mask[X0:(X1+1),Y0:(Y1+1)]
 
 
@@ -353,13 +359,13 @@ while True:
             return T([1,2])([x,y])(rectangle)
         
         if insideBlocks != []:
-            solids = AA(COLOR(BLACK))(AA(#ID
-                                         SKELETON(1)
+            solids = AA(COLOR(BLACK))(AA(ID
+                                         #SKELETON(1)
                                         )(AA(block)(insideBlocks)))
         else: solids = []
         if outsideBlocks != []:
-            voids = AA(COLOR(WHITE))(AA(#ID
-                                        SKELETON(1)
+            voids = AA(COLOR(WHITE))(AA(ID
+                                        #SKELETON(1)
                                         )(AA(block)(outsideBlocks)))
         else: voids = []
 
