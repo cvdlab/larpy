@@ -322,6 +322,10 @@ while True:
         if blocks == []: blocks = [block00,block10,block01,block11]
         print "\nblocks =", blocks
 
+        # filter out empty boxes
+    
+        blocks = [ block for block in blocks if not( block[2]==0 or block[3]==0) ]
+    
         # store current blocks in persistent data structures
 
         def fill(image,block):
@@ -349,11 +353,13 @@ while True:
             return T([1,2])([x,y])(rectangle)
         
         if insideBlocks != []:
-            solids = AA(COLOR(BLACK))(AA(ID#SKELETON(1)
+            solids = AA(COLOR(BLACK))(AA(#ID
+                                         SKELETON(1)
                                         )(AA(block)(insideBlocks)))
         else: solids = []
         if outsideBlocks != []:
-            voids = AA(COLOR(WHITE))(AA(ID#SKELETON(1)
+            voids = AA(COLOR(WHITE))(AA(#ID
+                                        SKELETON(1)
                                         )(AA(block)(outsideBlocks)))
         else: voids = []
 
