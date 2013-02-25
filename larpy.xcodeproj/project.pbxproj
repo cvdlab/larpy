@@ -13,6 +13,8 @@
 		C768A41B16A27969006F60D4 /* facets.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = facets.py; sourceTree = "<group>"; };
 		C768A41C16A411C8006F60D4 /* doc.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = doc.md; sourceTree = "<group>"; };
 		C768A41D16ABA261006F60D4 /* cochains.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = cochains.py; sourceTree = "<group>"; };
+		C76F3BFB16D9C7C2004D4D94 /* image2blocks3D.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = image2blocks3D.py; sourceTree = "<group>"; };
+		C76F3BFC16DB12BE004D4D94 /* blocks2solid.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = blocks2solid.py; sourceTree = "<group>"; };
 		C775125B16BBAA640036018F /* voxels2lar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = voxels2lar.py; sourceTree = "<group>"; };
 		C79C244216D0A0A5000C9733 /* blockimages.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = blockimages.md; sourceTree = "<group>"; };
 		C7A377FC16BD23B4005A3881 /* image2blocks.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = image2blocks.py; sourceTree = "<group>"; };
@@ -29,6 +31,8 @@
 				C768A41B16A27969006F60D4 /* facets.py */,
 				C775125B16BBAA640036018F /* voxels2lar.py */,
 				C7A377FC16BD23B4005A3881 /* image2blocks.py */,
+				C76F3BFB16D9C7C2004D4D94 /* image2blocks3D.py */,
+				C76F3BFC16DB12BE004D4D94 /* blocks2solid.py */,
 				C79C244216D0A0A5000C9733 /* blockimages.md */,
 				C768A41C16A411C8006F60D4 /* doc.md */,
 			);
