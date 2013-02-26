@@ -8,7 +8,6 @@ import pymorph
 import mahotas
 from time import time
 
-"""
 #-------------------------------------------------------------------
 # data input of 2D image
 
@@ -24,7 +23,7 @@ boundary = [ [[276,381],[326,381]], [[276,381],[276,431]], [[276,431],[326,431]]
 Image = STRUCT([COLOR(BLUE)(STRUCT([T([1,2])(rect[:2])(CUBOID(rect[2:])) for rect in solids])),
              COLOR(RED)(STRUCT([T([1,2])(rect[:2])(CUBOID(rect[2:])) for rect in voids]))])
 IMAGE = S(1)(-1)(R([1,2])(PI/2)(T([1,2])([-276.0, -381.0])(Image)))
-"""
+
 #-------------------------------------------------------------------
 
 """
