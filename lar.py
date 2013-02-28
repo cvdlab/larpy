@@ -708,7 +708,7 @@ def larFacets(model,dim=3):
 
 
 #------------------------------------------------------------------
-# extraction of skeletons of a cell complex
+# extraction of skeletons of a (grid) cell complex
 
 
 def larSkeletons (model,dim=3,grid=False):
