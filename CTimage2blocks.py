@@ -7,6 +7,7 @@ from random import random
 from scipy import ndimage,sparse,amax,amin,reshape
 import numpy as np
 
+
 def crossGrow(image,cross):
     xm,x,xM,ym,y,yM = cross
     rows,columns = image.shape
@@ -56,7 +57,7 @@ imWidth,imHeight = image.shape
 pylab.imshow(image, cmap=pylab.cm.bone)
 pylab.show()
 
-image = quantize (amin(image),amax(image),256)(image)
+image = quantize (amin(image),amax(image),16)(image)
 pylab.imshow(image)
 pylab.show()
 
@@ -323,7 +324,7 @@ while True:
             Visited = fill(Visited,block)
 
 
-# #print computing time
+# print computing time
 
 end = time() 
 print "\ntime =", end - start

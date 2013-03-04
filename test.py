@@ -1,6 +1,7 @@
 from lar import *
 from voxels2lar import *
 from random import random
+from blocks2solid import *
 
 #-------------------------------------------------------------------
 # data input of 2D image
@@ -72,16 +73,34 @@ boundary = [ [[276,381,-10],[326,381,10]], [[276,381,-10],[276,431,10]], [[276,4
 voxels = solids + voids0 + voids1 + voids2 + boundary
 print "\nvoxels =\n", voxels
 
-
 #-------------------------------------------------------------------
 # cellular complex generation
 
-model = larFromImageBlocks(voxels)
-V,cells = model
+def voxel2block(voxel):
+    p0,p1 = voxel
+    x,y,z = p0
+    dx,dy,dz = AA(abs)(VECTDIFF([p1,p0]))
+    return x,y,z,dx,dy,dz
+
+def computeMins(blocks):
+    return AA(min)(TRANS([[x+dx,y+dy,z+dz] for [x,y,z,dx,dy,dz] in blocks]))
+
+def translateImageOnOrigin(voxels):
+    firstPoints = [voxel[0] for voxel in voxels]
+    tvect = AA(min)(TRANS(firstPoints))
+    blocks = [ CAT([ VECTDIFF([voxel[0],tvect]), VECTDIFF(REVERSE(voxel)) ]) for voxel in voxels ]
+    return blocks
+
+blocks = translateImageOnOrigin(voxels)
+
+#model = larFromImageBlocks(voxels)
+model = lar3DFromImageBlocks(blocks)
+#V,cells = model
 V,faces = larSkeletons(model,dim=3)
 F0V, F1V, F2V, F3V = faces
-V = model[0]
+#V = model[0]
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V[:-6])) ))
+#VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V)) ))
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V)) ))
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V+F3V[:-6])) ))

@@ -25,7 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import collections
 import scipy.sparse
-from scipy import zeros,arange,mat
+from scipy import zeros,arange,mat,amin,amax
 from scipy.sparse import vstack,hstack,csr_matrix,lil_matrix,triu
 from scipy.spatial import Delaunay
 from scipy.linalg import *
@@ -734,7 +734,8 @@ def larFacets(model,dim=3,grid=False):
     cellFacets = []
     internalCellNumber = len(cells)
     #if not grid: internalCellNumber -= 1
-    if not grid: internalCellNumber -= 2*dim
+    #if not grid: internalCellNumber -= 2*dim
+    if not grid: internalCellNumber -= 2*(dim-1)
     # for each input cell i
     for i in range(internalCellNumber):
         adjCells = csrAdjSquareMat[i].tocoo()
@@ -775,6 +776,199 @@ def outerVertexTest (bounds):
         return OR(AA(EQ)(CAT(AA(TRANS)(DISTR([bounds,v])))))
     return test0
 
+
+
+#------------------------------------------------------------------
+#--imaging layer (enumerative schemes w integer coords)------------
+#------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------
+# 2D images to lar model
+
+def write2DBlock(cooStore):
+    def write2DBlock0(block):
+        cooStore.append([0,0,2])
+        x,y,dx,dy = block
+        i = x
+        for j in range(y,y+dy+1): cooStore.append([i,j,1])
+        cooStore.append([i,j,2])
+        i = x+dx
+        for j in range(y,y+dy+1): cooStore.append([i,j,1])
+        cooStore.append([i,j,2])
+        j = y
+        for i in range(x,x+dx+1): cooStore.append([i,j,1])
+        cooStore.append([i,j,2])
+        j = y+dy
+        for i in range(x,x+dx+1): cooStore.append([i,j,1])
+        cooStore.append([i,j,2])
+        return cooStore
+    return write2DBlock0
+
+
+def read2DBlock(lilStore):
+    def read2DBlock0(block):
+        x,y,dx,dy = block
+        outBlock = [[(i,y) for i in range(x,x+dx) if lilStore[i,y] > 2]]
+        outBlock.append([(x+dx,j) for j in range(y,y+dy) if lilStore[x+dx,j] > 2])
+        outBlock.append([(i,y+dy) for i in range(x+dx,x,-1) if lilStore[i,y+dy] > 2])
+        outBlock.append([(x,j) for j in range(y+dy,y,-1) if lilStore[x,j] > 2])
+        return CAT(outBlock)
+    return read2DBlock0
+
+
+def lar2DFromImageBlocks(blocks):
+    
+    # forward step (writing the boundary of each block)
+    cooStore = []
+    for block in blocks:
+        write2DBlock(cooStore)(block)
+    lilStore = csrCreateFromCoo(cooStore).tolil()
+
+    # backward step (reading the boundary of each block)
+    updatedBlock = [read2DBlock(lilStore)(block) for block in blocks]
+    verts = collections.OrderedDict(); k = 0
+    for block in updatedBlock:
+        for vert in block:
+            if vert not in verts:
+                verts[vert] = k
+                k += 1
+
+    # encoding the output
+    V = verts.keys()
+    F2V = [[verts[vert] for vert in block] for block in updatedBlock]
+
+    # automatically adding the 4 exterior blocks of the 2D image
+    xmin,ymin = AA(amin)(TRANS(V))
+    xmax,ymax = AA(amax)(TRANS(V))
+    print "\n(xmin,ymin) =",(xmin,ymin)
+    print "\n(xmax,ymax) =",(xmax,ymax)
+    exterior_xmin, exterior_xmax, exterior_ymin, exterior_ymax = [],[],[],[]
+    for (key,value) in verts.items():
+        print "\n(key,value) =",(key,value)
+        if key[0] == xmin: exterior_xmin.append(value)
+        if key[0] == xmax: exterior_xmax.append(value)
+        if key[1] == ymin: exterior_ymin.append(value)
+        if key[1] == ymax: exterior_ymax.append(value)
+
+    model = V,F2V + [exterior_xmin, exterior_xmax, exterior_ymin, exterior_ymax]
+    return model
+
+
+if __name__=="__main__":
+    blocks2D = [ [[0,0],[5,10]], [[5,0],[9,3]], [[9,0],[13,3]], [[5,3],[8,10]],  [[8,3],[13,10]], [[0,10],[9,12]]
+                , [[9,10],[13,12]] ]
+    
+    blocks = [ CAT([ block[0],VECTDIFF(REVERSE(block)) ])  for block in blocks2D ]
+    model = lar2DFromImageBlocks(blocks)
+    V,faces = larSkeletons(model,dim=2)
+    F0V, F1V, F2V = faces
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V[:-4])) ))
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V[:-4])) ))
+
+#-------------------------------------------------------------------
+# 3D images to lar model
+
+
+def write3DBlock(store):
+    def write3DBlock0(block):
+        x,y,z,dx,dy,dz = block
+        for j in range(y,y+dy+1):
+            for k in range(z,z+dz+1):
+                store[x,j,k] += 1
+                store[x+dx,j,k] += 1
+        store[x,j,k] += 2
+        store[x+dx,j,k] += 2
+        for k in range(z,z+dz+1):
+            for i in range(x,x+dx+1):
+                store[i,y,k] += 1
+                store[i,y+dy,k] += 1
+        store[i,y,k] += 2
+        store[i,y+dy,k] += 2
+        for i in range(x,x+dx+1):
+            for j in range(y,y+dy+1):
+                store[i,j,z] += 1
+                store[i,j,z+dz] += 1
+        store[i,j,z] += 2
+        store[i,j,z+dz] += 2
+        return store
+    return write3DBlock0
+
+
+def read3DBlock(store):
+    def read3DBlock0(block):
+        x,y,z,dx,dy,dz = block
+        outBlock = [[(x,j,k) for j in range(y,y+dy+1) for k in range(z,z+dz+1) if store[x,j,k] > 3]]
+        outBlock.append([(x+dx,j,k) for j in range(y,y+dy+1) for k in range(z,z+dz+1) if store[x+dx,j,k] > 3])
+        outBlock.append([(i,y,k) for k in range(z,z+dz+1) for i in range(x,x+dx+1) if store[i,y,k] > 3])
+        outBlock.append([(i,y+dy,k) for k in range(z,z+dz+1) for i in range(x,x+dx+1) if store[i,y+dy,k] > 3])
+        outBlock.append([(i,j,z) for i in range(x,x+dx+1) for j in range(y,y+dy+1) if store[i,j,z] > 3])
+        outBlock.append([(i,j,z+dz) for i in range(x,x+dx+1) for j in range(y,y+dy+1) if store[i,j,z+dz] > 3])
+        return CAT(outBlock)
+    return read3DBlock0
+
+
+def lar3DFromImageBlocks(blocks):
+    def computeShape(blocks):
+        return AA(max)(TRANS([[x+dx,y+dy,z+dz] for [x,y,z,dx,dy,dz] in blocks]))
+    ax,ay,az = computeShape(blocks)
+    store = zeros(shape=(ax+1,ay+1,az+1),dtype=int)
+    store[0,0,0] += 3
+    store[ax,0,0] += 3
+    store[0,ay,0] += 3
+    store[0,0,az] += 3
+    store[ax,ay,0] += 3
+    store[ax,0,az] += 3
+    store[0,ay,az] += 3
+    store[ax,ay,az] += 2
+    
+    # forward step (writing the boundary of each block)
+    [ write3DBlock(store)(block) for block in blocks ]
+    store[ax,ay,az] += 2 # to solve the bug of the extreme vertex of the extreme block
+
+    # backward step (reading the boundary of each block)
+    updatedBlocks = [ read3DBlock(store)(block) for block in blocks ]
+    verts = collections.OrderedDict(); k = 0
+    for block in updatedBlocks:
+        for vert in block:
+            if vert not in verts:
+                verts[vert] = k
+                k += 1
+
+    # encoding the output
+    V = verts.keys()
+    F3V = [[verts[vert] for vert in block] for block in updatedBlocks]
+                    
+    # automatically adding the 6 exterior blocks of the 3D image
+    xmin,ymin,zmin = AA(amin)(TRANS(V))
+    xmax,ymax,zmax = AA(amax)(TRANS(V))
+    exterior_xmin, exterior_xmax, exterior_ymin, exterior_ymax, exterior_zmin, exterior_zmax = [],[],[],[],[],[]
+    for (key,value) in verts.items():
+        if key[0] == xmin: exterior_xmin.append(value)
+        if key[0] == xmax: exterior_xmax.append(value)
+        if key[1] == ymin: exterior_ymin.append(value)
+        if key[1] == ymax: exterior_ymax.append(value)
+        if key[2] == zmin: exterior_zmin.append(value)
+        if key[2] == zmax: exterior_zmax.append(value)
+    esteriorCells = [exterior_xmin, exterior_xmax, exterior_ymin, exterior_ymax, exterior_zmin, exterior_zmax]
+    model = V, F3V + esteriorCells
+    return model
+
+if __name__=="__main__":
+
+    blocks3D = [ [[0,0,0],[5,10,3]], [[5,0,0],[9,3,3]], [[9,0,0],[13,3,3]], [[5,3,0],[8,10,3]],  [[8,3,0],[13,10,3]], [[0,10,0],[9,12,3]], [[9,10,0],[13,12,3]] ]
+    
+    blocks = [ CAT([ block[0],VECTDIFF(REVERSE(block)) ])  for block in blocks3D ]
+    model = lar3DFromImageBlocks(blocks) # BUG: the extreme vert of the extreme 3D-cell is missing ... induce errors in computation of 1-cells ...
+    V,cells = model
+    V,faces = larSkeletons(model,dim=3)
+    F0V, F1V, F2V, F3V = faces
+    V = model[0]
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V[:-6])) ))
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V)) ))
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))  
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V+F3V[:-6])) ))
 
 
 #------------------------------------------------------------------

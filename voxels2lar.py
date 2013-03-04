@@ -1,64 +1,7 @@
 from lar import *
 
-
-
 #-------------------------------------------------------------------
-# dimension-independent conversion from discrete image to LAR
-
-def larFromImageBlocks(blocks):
-    dim = len(blocks[0][0])
-    blocks = AA(CAT)(blocks)
-    bounds = TRANS(blocks)
-    cells = [[] for k in range(len(blocks))]
-    minMaxCoords = zip(AA(min)(bounds[:dim]), AA(max)(bounds[dim:]))
-    gridPoints = CART(AA(FROMTO)(AA(list)(minMaxCoords)))
-    counter,V,i = [],[],0
-    for point in gridPoints:
-        for k,cell in enumerate(blocks):
-            pmin,pmax = cell[:dim],cell[dim:]
-            classify = AND(CAT([AA(ISGE)(TRANS([pmin,point])),AA(ISLE)(TRANS([pmax,point]))]))
-            if classify: counter.append(k)
-        if len(counter) >= dim+1:
-            [cells[k].append(i) for k in counter]
-            V += [point]
-            i += 1
-        counter = []
-    return V,cells
-
-#-------------------------------------------------------------------
-# 2D image example
-
-if __name__=="__main__":
-    blocks = [ [[0,0],[5,10]], [[5,0],[9,3]], [[9,0],[13,3]], [[5,3],[8,10]],  [[8,3],[13,10]], [[0,10],[9,12]], [[9,10],[13,12]], [[0,0],[0,12]], [[0,0],[13,0]], [[13,0],[13,12]], [[0,12],[13,12]] ]
-    
-    model = larFromImageBlocks(blocks)
-    V,cells = model
-    V,faces = larSkeletons(model,dim=2)
-    F0V, F1V, F2V = faces
-    V = model[0]
-    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V[:-4])) ))
-    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
-    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V[:-4])) ))
-
-#-------------------------------------------------------------------
-# 3D image example
-
-if __name__=="__main__":
-    blocks = [ [[0,0,0],[5,10,3]], [[5,0,0],[9,3,3]], [[9,0,0],[13,3,3]], [[5,3,0],[8,10,3]],  [[8,3,0],[13,10,3]], [[0,10,0],[9,12,3]], [[9,10,0],[13,12,3]], [[0,0,0],[0,12,3]], [[0,0,0],[13,0,3]], [[13,0,0],[13,12,3]], [[0,12,0],[13,12,3]], [[0,0,0],[13,12,0]], [[0,0,3],[13,12,3]] ]
-    
-    model = larFromImageBlocks(blocks)
-    V,cells = model
-    V,faces = larSkeletons(model,dim=3)
-    F0V, F1V, F2V, F3V = faces
-    V = model[0]
-    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V[:-6])) ))
-    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V)) ))
-    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
-    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V+F3V[:-6])) ))
-
-
-#-------------------------------------------------------------------
-# bigger 2D image example
+# 2D Blocks example
 
 if __name__=="__main__":
 
@@ -67,9 +10,7 @@ if __name__=="__main__":
     [299,381,27,16],[276,422,50,9],[276,398,10,24],[301,397,8,10],[322,397,4,25],[276,381,6,17],[282,381,17,4],[295,385,4,5],[286,415,4,7],[317,418,5,4],[311,420,6,2],[301,407,4,2],[286,411,3,4],[286,406,2,5],[290,419,3,3],[282,395,2,3],[282,385,2,3],[292,385,3,2],[297,390,2,3],[309,397,3,2],[319,397,3,2],[319,416,3,2],[320,414,2,2],[305,407,3,1],[299,397,2,2],[300,399,1,6],[298,393,1,3],[284,385,4,1],[306,421,5,1],[289,385,3,1],[312,397,3,1],[316,397,3,1],[282,388,1,3],[309,399,1,2],[321,399,1,3],[321,410,1,4],[293,421,3,1],[286,401,1,5],[282,393,1,2],[290,415,1,4],[284,386,1,1],[294,387,1,1],[295,390,2,1],[284,397,1,1],[293,420,1,1],[318,417,1,1],[315,419,2,1],[320,399,1,1],[310,399,1,1],
      ]
 
-    blocks = [[[rect[0],rect[1]],[rect[0]+rect[2], rect[1]+rect[3]]] for rect in rects] + [ [[276,381],[326,381]], [[276,381],[276,431]], [[276,431],[326,431]], [[326,326],[326,431]] ]
-
-    model = larFromImageBlocks(blocks)
+    model = lar2DFromImageBlocks(rects)
     V,cells = model
     V,faces = larSkeletons(model,dim=2)
     F0V, F1V, F2V = faces

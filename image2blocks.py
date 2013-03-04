@@ -4,7 +4,7 @@ from random import random
 from copy import copy
 import numpy as np
 import pylab
-import pymorph
+#import pymorph
 import mahotas
 from time import time
 
@@ -31,6 +31,8 @@ IMAGE = S(1)(-1)(R([1,2])(PI/2)(T([1,2])([-276.0, -381.0])(Image)))
 
 """
 def BMPimage2blocks(filename):
+    """ conversion of a B/W BitMaP image into a double list of blocks (solid,empty).
+    """
     
     def crossGrow(image,cross):
         xm,x,xM,ym,y,yM = cross
@@ -368,7 +370,7 @@ if __name__ == "__main__":
     print "\ntime =", end - start
     print "len(insideBlocks+outsideBlocks) =",len(insideBlocks+outsideBlocks), "\n"
 
-    # display current blocks in pyPlasm
+    # display blocks in pyPlasm
 
     def block(data):
         x,y,dx,dy = AA(float)(data)
@@ -386,7 +388,6 @@ if __name__ == "__main__":
                                     )(AA(block)(outsideBlocks)))
     else: voids = []
 
-    View(#STRUCT([T(3)(-0.1)(IMAGE),
-         STRUCT(voids + solids))#]))
+    View(STRUCT(voids + solids))
     print "\nsolid =",insideBlocks
     print "\nempty =",outsideBlocks
