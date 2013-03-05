@@ -729,7 +729,7 @@ def larFacets(model,dim=3,grid=False):
     """
         Estraction of (d-1)-cellFacets from model := (V,d-cells)
         Return (V, (d-1)-cellFacets)
-        """
+    """
     V,cells,csr,csrAdjSquareMat,facets = setup(model,dim)
     cellFacets = []
     internalCellNumber = len(cells)
@@ -789,19 +789,9 @@ def outerVertexTest (bounds):
 def write2DBlock(cooStore):
     def write2DBlock0(block):
         cooStore.append([0,0,2])
-        x,y,dx,dy = block
-        i = x
-        for j in range(y,y+dy+1): cooStore.append([i,j,1])
-        cooStore.append([i,j,2])
-        i = x+dx
-        for j in range(y,y+dy+1): cooStore.append([i,j,1])
-        cooStore.append([i,j,2])
-        j = y
-        for i in range(x,x+dx+1): cooStore.append([i,j,1])
-        cooStore.append([i,j,2])
-        j = y+dy
-        for i in range(x,x+dx+1): cooStore.append([i,j,1])
-        cooStore.append([i,j,2])
+        x0,y0,dx,dy = block
+        [(cooStore.append([x0,j,1]), cooStore.append([x0+dx,j,1])) for j in range(y0,y0+dy+1)]
+        [(cooStore.append([i,y0,1]), cooStore.append([i,y0+dy,1])) for i in range(x0,x0+dx+1)]
         return cooStore
     return write2DBlock0
 
@@ -821,6 +811,13 @@ def lar2DFromImageBlocks(blocks):
     
     # forward step (writing the boundary of each block)
     cooStore = []
+    def computeShape(blocks):
+        return AA(max)(TRANS([[x+dx,y+dy] for [x,y,dx,dy] in blocks]))
+    ax,ay = computeShape(blocks)
+    cooStore.append([0,0,2])
+    cooStore.append([ax,0,2])
+    cooStore.append([0,ay,2])
+    cooStore.append([ax,ay,2])
     for block in blocks:
         write2DBlock(cooStore)(block)
     lilStore = csrCreateFromCoo(cooStore).tolil()
@@ -841,11 +838,8 @@ def lar2DFromImageBlocks(blocks):
     # automatically adding the 4 exterior blocks of the 2D image
     xmin,ymin = AA(amin)(TRANS(V))
     xmax,ymax = AA(amax)(TRANS(V))
-    print "\n(xmin,ymin) =",(xmin,ymin)
-    print "\n(xmax,ymax) =",(xmax,ymax)
     exterior_xmin, exterior_xmax, exterior_ymin, exterior_ymax = [],[],[],[]
     for (key,value) in verts.items():
-        print "\n(key,value) =",(key,value)
         if key[0] == xmin: exterior_xmin.append(value)
         if key[0] == xmax: exterior_xmax.append(value)
         if key[1] == ymin: exterior_ymin.append(value)
@@ -878,20 +872,14 @@ def write3DBlock(store):
             for k in range(z,z+dz+1):
                 store[x,j,k] += 1
                 store[x+dx,j,k] += 1
-        store[x,j,k] += 2
-        store[x+dx,j,k] += 2
         for k in range(z,z+dz+1):
             for i in range(x,x+dx+1):
                 store[i,y,k] += 1
                 store[i,y+dy,k] += 1
-        store[i,y,k] += 2
-        store[i,y+dy,k] += 2
         for i in range(x,x+dx+1):
             for j in range(y,y+dy+1):
                 store[i,j,z] += 1
                 store[i,j,z+dz] += 1
-        store[i,j,z] += 2
-        store[i,j,z+dz] += 2
         return store
     return write3DBlock0
 
@@ -914,13 +902,13 @@ def lar3DFromImageBlocks(blocks):
         return AA(max)(TRANS([[x+dx,y+dy,z+dz] for [x,y,z,dx,dy,dz] in blocks]))
     ax,ay,az = computeShape(blocks)
     store = zeros(shape=(ax+1,ay+1,az+1),dtype=int)
-    store[0,0,0] += 3
-    store[ax,0,0] += 3
-    store[0,ay,0] += 3
-    store[0,0,az] += 3
-    store[ax,ay,0] += 3
-    store[ax,0,az] += 3
-    store[0,ay,az] += 3
+    store[0,0,0] += 2
+    store[ax,0,0] += 2
+    store[0,ay,0] += 2
+    store[0,0,az] += 2
+    store[ax,ay,0] += 2
+    store[ax,0,az] += 2
+    store[0,ay,az] += 2
     store[ax,ay,az] += 2
     
     # forward step (writing the boundary of each block)
