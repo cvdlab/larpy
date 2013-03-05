@@ -809,7 +809,11 @@ def read2DBlock(lilStore):
 
 def lar2DFromImageBlocks(blocks):
     
-    # forward step (writing the boundary of each block)
+    # translation that moves the (xmin,ymin) point to the origin
+    xmin,ymin = AA(min)(TRANS([block[0:2] for block in blocks]))
+    blocks = [[x-xmin,y-ymin,dx,dy] for [x,y,dx,dy] in blocks]
+    
+    # store initialization
     cooStore = []
     def computeShape(blocks):
         return AA(max)(TRANS([[x+dx,y+dy] for [x,y,dx,dy] in blocks]))
@@ -818,6 +822,8 @@ def lar2DFromImageBlocks(blocks):
     cooStore.append([ax,0,2])
     cooStore.append([0,ay,2])
     cooStore.append([ax,ay,2])
+
+    # forward step (writing the boundary of each block)
     for block in blocks:
         write2DBlock(cooStore)(block)
     lilStore = csrCreateFromCoo(cooStore).tolil()
@@ -898,6 +904,12 @@ def read3DBlock(store):
 
 
 def lar3DFromImageBlocks(blocks):
+    
+    # translation that moves the (xmin,ymin) point to the origin
+    xmin,ymin,zmin = AA(min)(TRANS([block[0:3] for block in blocks]))
+    blocks = [[x-xmin,y-ymin,z-zmin,dx,dy,dz] for [x,y,z,dx,dy,dz] in blocks]
+    
+    # store initialization
     def computeShape(blocks):
         return AA(max)(TRANS([[x+dx,y+dy,z+dz] for [x,y,z,dx,dy,dz] in blocks]))
     ax,ay,az = computeShape(blocks)
@@ -948,11 +960,9 @@ if __name__=="__main__":
     blocks3D = [ [[0,0,0],[5,10,3]], [[5,0,0],[9,3,3]], [[9,0,0],[13,3,3]], [[5,3,0],[8,10,3]],  [[8,3,0],[13,10,3]], [[0,10,0],[9,12,3]], [[9,10,0],[13,12,3]] ]
     
     blocks = [ CAT([ block[0],VECTDIFF(REVERSE(block)) ])  for block in blocks3D ]
-    model = lar3DFromImageBlocks(blocks) # BUG: the extreme vert of the extreme 3D-cell is missing ... induce errors in computation of 1-cells ...
-    V,cells = model
+    model = lar3DFromImageBlocks(blocks)
     V,faces = larSkeletons(model,dim=3)
     F0V, F1V, F2V, F3V = faces
-    V = model[0]
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V[:-6])) ))
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V)) ))
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))  
