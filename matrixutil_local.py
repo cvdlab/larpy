@@ -23,14 +23,18 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     
 """
+import collections
+import scipy.sparse
+from scipy import zeros,arange,mat
+from scipy.sparse import vstack,hstack,csr_matrix,lil_matrix,triu
+from scipy.spatial import Delaunay
+from scipy.linalg import *
+from pyplasm import *
 
 def csrProduct(CSRm1,CSRm2):
     CSRm = CSRm1 * CSRm2
     return CSRm
 
-"""
-if __name__ == "__main__" and self_test:
-    print "\n>>> csrProduct"
-    CSRm = csrProduct(csrFV, csrTranspose(csrEV))
-    print "\ncsrFE =\n", csrToMatrixRepresentation(CSRm)
-"""
+def csrTranspose(CSRm):
+    CSRm = CSRm.T
+    return CSRm

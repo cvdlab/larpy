@@ -30,7 +30,7 @@ from scipy.sparse import vstack,hstack,csr_matrix,lil_matrix,triu
 from scipy.spatial import Delaunay
 from scipy.linalg import *
 from pyplasm import *
-from matrixutil import *
+from matrixutil_local import *
 
 self_test=False
 
@@ -346,27 +346,6 @@ if __name__ == "__main__" and self_test:
 #------------------------------------------------------------------
 #--sparse matrix operations layer----------------------------------
 #------------------------------------------------------------------
-
-#------------------------------------------------------------------
-def csrTranspose(CSRm):
-    CSRm = CSRm.T
-    return CSRm
-
-if __name__ == "__main__" and self_test:
-    print "\n>>> csrTranspose"
-    CSRm = csrTranspose(csrFV)
-    print "\ncsrTranspose(csrFV) =\n", csrToMatrixRepresentation(CSRm)
-
-
-#------------------------------------------------------------------
-def csrProduct(CSRm1,CSRm2):
-    CSRm = CSRm1 * CSRm2
-    return CSRm
-
-if __name__ == "__main__" and self_test:
-    print "\n>>> csrProduct"
-    CSRm = csrProduct(csrFV, csrTranspose(csrEV))
-    print "\ncsrFE =\n", csrToMatrixRepresentation(CSRm)
 
 #------------------------------------------------------------------
 def csrMaxFilter(CSRm):
