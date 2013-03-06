@@ -135,8 +135,12 @@ def lar3DFromImageBlocks(blocks):
 if __name__ == "__main__":
 
     #-- Test data ---------------------------------------------------------------------------------------------
-    
-    solid,empty = BMPimage2blocks('test1.bmp')
+
+    image = mahotas.imread('test1.bmp')
+    pylab.imshow(image)
+    pylab.show()
+
+    solid,empty = BMPimage2blocks(image)
     
     nsolid = len(solid)
     nempty = len(empty)
@@ -168,10 +172,10 @@ if __name__ == "__main__":
     F0V, F1V, F2V = faces
     print "AA(LEN)([F0V, F1V, F2V]) =", AA(LEN)([F0V, F1V, F2V])
     V = model[0]
-    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F2V[:-4])) ))
-    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F1V)) ))
-    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F0V)) ))
-    VIEW(EXPLODE(2,2,2)( MKPOLS((V,F0V+F1V+F2V[:-4])) ))
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V[:-4])) ))
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V)) ))
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V[:-4])) ))
 
 
 
