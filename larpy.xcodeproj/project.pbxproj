@@ -20,16 +20,14 @@
 		C775125B16BBAA640036018F /* voxels2lar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = voxels2lar.py; sourceTree = "<group>"; };
 		C79C244216D0A0A5000C9733 /* blockimages.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = blockimages.md; sourceTree = "<group>"; };
 		C7A377FC16BD23B4005A3881 /* image2blocks.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = image2blocks.py; sourceTree = "<group>"; };
-		C7ACF73016E5EDC900FFECFD /* matrixutil_local.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = matrixutil_local.py; sourceTree = "<group>"; };
-		C7ACF73116E5EDC900FFECFD /* matrixutil_remote.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = matrixutil_remote.py; sourceTree = "<group>"; };
+		C7CD3E6416E7C21300FAC728 /* matrixutil_accel.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = matrixutil_accel.py; sourceTree = "<group>"; };
+		C7CD3E6516E7C21300FAC728 /* matrixutil_no_accel.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = matrixutil_no_accel.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		C768A406169B1DED006F60D4 = {
 			isa = PBXGroup;
 			children = (
-				C7ACF73016E5EDC900FFECFD /* matrixutil_local.py */,
-				C7ACF73116E5EDC900FFECFD /* matrixutil_remote.py */,
 				C768A413169B1E96006F60D4 /* lar.py */,
 				C768A41D16ABA261006F60D4 /* cochains.py */,
 				C768A41A169BE83B006F60D4 /* test.py */,
@@ -37,6 +35,8 @@
 				C775125B16BBAA640036018F /* voxels2lar.py */,
 				C7A377FC16BD23B4005A3881 /* image2blocks.py */,
 				C76F3BFF16DC7D9E004D4D94 /* CTimage2blocks.py */,
+				C7CD3E6416E7C21300FAC728 /* matrixutil_accel.py */,
+				C7CD3E6516E7C21300FAC728 /* matrixutil_no_accel.py */,
 				C76F3BFE16DC7D43004D4D94 /* CT_small.dcm */,
 				C76F3BFB16D9C7C2004D4D94 /* image2blocks3D.py */,
 				C76F3BFC16DB12BE004D4D94 /* blocks2solid.py */,
