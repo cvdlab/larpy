@@ -30,7 +30,7 @@ from scipy.sparse import vstack,hstack,csr_matrix,lil_matrix,triu
 from scipy.spatial import Delaunay
 from scipy.linalg import *
 from pyplasm import *
-from matrixutil_local import *
+from matrixutil_no_accel import *
 
 self_test=False
 
@@ -360,7 +360,7 @@ def csrMaxFilter(CSRm):
 
 if __name__ == "__main__" and self_test:
     print "\n>>> csrMaxFilter"
-    CSRm = csrMaxFilter(csrProduct(csrFV, csrTranspose(csrEV)).T).T
+    CSRm = csrMaxFilter(matrixProduct(csrFV, csrTranspose(csrEV)).T).T
     print "\ncsrMaxFilter(csrFE) =\n", csrToMatrixRepresentation(CSRm)
 
 
@@ -374,7 +374,7 @@ def csrBoundaryFilter(CSRm, facetLengths):
 
 if __name__ == "__main__" and self_test:
     print "\n>>> csrBoundaryFilter"
-    CSRm = csrBoundaryFilter(csrProduct(csrFV, csrTranspose(csrEV)).T).T
+    CSRm = csrBoundaryFilter(matrixProduct(csrFV, csrTranspose(csrEV)).T).T
     print "\ncsrMaxFilter(csrFE) =\n", csrToMatrixRepresentation(CSRm)
 
 #------------------------------------------------------------------
@@ -394,7 +394,7 @@ def csrBinFilter(CSRm):
 
 if __name__ == "__main__" and self_test:
     print "\n>>> csrBinFilter"
-    CSRm = csrBinFilter(csrProduct(csrFV, csrTranspose(csrEV)).T).T
+    CSRm = csrBinFilter(matrixProduct(csrFV, csrTranspose(csrEV)).T).T
     print "\nccsrBinFilter(csrFE) =\n", csrToMatrixRepresentation(CSRm)
 
 
@@ -410,7 +410,7 @@ def csrPredFilter(CSRm, pred):
 
 if __name__ == "__main__" and self_test:
     print "\n>>> csrPredFilter"
-    CSRm = csrPredFilter(csrProduct(csrFV, csrTranspose(csrEV)).T, GE(2)).T
+    CSRm = csrPredFilter(matrixProduct(csrFV, csrTranspose(csrEV)).T, GE(2)).T
     print "\nccsrPredFilter(csrFE) =\n", csrToMatrixRepresentation(CSRm)
 
 
@@ -450,7 +450,7 @@ def csrExtractAllGenerators(CSRm):
 if __name__ == "__main__" and self_test:
     print "\n>>> csrExtractAllGenerators"
     facetLengths = [csrCell.getnnz() for csrCell in csrEV]
-    boundary_2_Op = csrBoundaryFilter(csrProduct(csrEV, csrTranspose(csrFV)),
+    boundary_2_Op = csrBoundaryFilter(matrixProduct(csrEV, csrTranspose(csrFV)),
                                  facetLengths)
     listOfListOfNumerals = csrExtractAllGenerators(boundary_2_Op)
     print "\ncsrExtractAllGenerators(boundary_2_Op) =\n", \
@@ -474,7 +474,7 @@ if __name__ == "__main__" and self_test:
 
 #------------------------------------------------------------------
 def larCellAdjacencies(CSRm):
-    CSRm = csrProduct(CSRm,csrTranspose(CSRm))
+    CSRm = matrixProduct(CSRm,csrTranspose(CSRm))
     return CSRm
 
 if __name__ == "__main__" and self_test:
@@ -487,7 +487,7 @@ if __name__ == "__main__" and self_test:
 
 #------------------------------------------------------------------
 def larCellIncidences(CSRm1,CSRm2):
-    return csrProduct(CSRm1, csrTranspose(CSRm2))
+    return matrixProduct(CSRm1, csrTranspose(CSRm2))
 
 if __name__ == "__main__" and self_test:
     print "\n>>> larCellIncidences"
@@ -521,7 +521,7 @@ def larBoundaryChain(csrBoundaryMat,brcCellList):
     csrChain = sum([csrCreateUnitChain(n,k) for k in brcCellList])
     print "\nchain =", csrToMatrixRepresentation(csrChain)
     print "\ncsrBoundaryMat.shape,csrChain.shape =", csrBoundaryMat.shape,csrChain.shape
-    csrmat = csrProduct(csrBoundaryMat,csrChain)
+    csrmat = matrixProduct(csrBoundaryMat,csrChain)
     print "\ncsrmat.shape =", csrmat.shape
     return csrBinFilter(csrmat)
 
@@ -541,7 +541,7 @@ def larCoboundaryChain(csrCoBoundaryMat,brcCellList):
     m = csrGetNumberOfColumns(csrCoBoundaryMat)
     csrChain = sum([csrCreateUnitChain(m,k) for k in brcCellList])
     print "\nchain =", csrToMatrixRepresentation(csrChain)
-    return csrBinFilter(csrProduct(csrCoBoundaryMat,csrChain))
+    return csrBinFilter(matrixProduct(csrCoBoundaryMat,csrChain))
 
 if __name__ == "__main__" and self_test:
     print "\n>>> larCoboundaryChain"
@@ -1013,7 +1013,7 @@ if __name__ == "__main__":
     print "\nFV.T =\n", csrToMatrixRepresentation(csrVF)
     
     # product
-    csrEF = csrProduct(csrEV, csrVF)
+    csrEF = matrixProduct(csrEV, csrVF)
     print "\nEF =\n", csrToMatrixRepresentation(csrEF)
     
     # product and transposition
@@ -1065,7 +1065,7 @@ if __name__ == "__main__":
     
     
     # boundary 1-chain computation
-    boundary_1_chain = csrBinFilter( csrProduct(boundary, total_2_chain) )
+    boundary_1_chain = csrBinFilter( matrixProduct(boundary, total_2_chain) )
     boundary_1_cells = csrChainToCellList( boundary_1_chain )
     print "\nboundary_1_cells =\n",boundary_1_cells
     
