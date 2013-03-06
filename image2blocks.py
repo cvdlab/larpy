@@ -30,45 +30,12 @@ IMAGE = S(1)(-1)(R([1,2])(PI/2)(T([1,2])([-276.0, -381.0])(Image)))
    Decomposition of a 2D image into rectangular blocks.
 
 """
-def BMPimage2blocks(filename):
+def BMPimage2blocks(image):
     """ conversion of a B/W BitMaP image into a double list of blocks (solid,empty).
     """
-    
-    def crossGrow(image,cross):
-        xm,x,xM,ym,y,yM = cross
-        pointValue = image[x,y]
-        if xm > 0 and image[xm-1,y] == pointValue: xm -= 1
-        if xM < 49 and image[xM+1,y] == pointValue: xM += 1
-        if ym > 0 and image[x,ym-1] == pointValue: ym -= 1
-        if yM < 49 and image[x,yM+1] == pointValue: yM += 1
-        return xm,x,xM,ym,y,yM
-
-    def xbar(image,span,xspan):
-        xm,x0,xM,y0 = span
-        xmin,xMAX = xspan
-        pointValue = image[x0,y0]
-        if xm > xmin and image[xm-1,y0] == pointValue: xm -= 1
-        if xM < xMAX and image[xM+1,y0] == pointValue: xM += 1
-        return xm,x0,xM,y0
-
-    def ybar(image,span,yspan):
-        x0,ym,y0,yM = span
-        ymin,yMAX = yspan
-        pointValue = image[x0,y0]
-        if ym > ymin and image[x0,ym-1] == pointValue: ym -= 1
-        if yM < yMAX and image[x0,yM+1] == pointValue: yM += 1
-        return x0,ym,y0,yM
-
-    def delta(p,q): # area of rectangle (q,p)
-        vect = AA(abs)(VECTDIFF([p,q]))
-        return vect[0] * vect[1]
-
 
     # Input of image into persistent storage structures
 
-    image = mahotas.imread(filename)
-    pylab.imshow(image)
-    pylab.show()
 
     imWidth,imHeight = image.shape
     Inside = copy(image)
@@ -361,11 +328,16 @@ def BMPimage2blocks(filename):
 #-------------------------------------------------------------------
 
 if __name__ == "__main__":
+    
+    image = mahotas.imread('test1.bmp')
+    pylab.imshow(image)
+    pylab.show()
+
 
     # print computing time
 
     start = time()
-    insideBlocks,outsideBlocks = BMPimage2blocks('test1.bmp')
+    insideBlocks,outsideBlocks = BMPimage2blocks(image)
     end = time()
     print "\ntime =", end - start
     print "len(insideBlocks+outsideBlocks) =",len(insideBlocks+outsideBlocks), "\n"
