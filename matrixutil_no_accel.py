@@ -31,7 +31,7 @@ from scipy.spatial import Delaunay
 from scipy.linalg import *
 from pyplasm import *
 
-def csrProduct(CSRm1,CSRm2):
+def matrixProduct(CSRm1,CSRm2):
     CSRm = CSRm1 * CSRm2
     return CSRm
 

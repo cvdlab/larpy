@@ -138,7 +138,7 @@ VIEW(SOLIDIFY(T([1,2])([-301.0, -406.0])(STRUCT(boundary2D))))
 # 1-chain of 2-boundary
 csrBoundary_2 = larBoundary(F1V,F2V)
 n = csrGetNumberOfColumns(csrBoundary_2)
-csrChain_1 = sum([csrProduct(csrBoundary_2, csrCreateUnitChain(n,f)) for f in boundary_2_cells ])
+csrChain_1 = sum([matrixProduct(csrBoundary_2, csrCreateUnitChain(n,f)) for f in boundary_2_cells ])
 chain_1 = csrChainToCellList(csrPredFilter(csrChain_1,C(EQ)(2)))
 model = (V,[F1V[e] for e in chain_1])
 VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(model)))
