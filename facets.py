@@ -30,7 +30,7 @@ if __name__=="__main__":
     
     model = (V,F3V)
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(model)))
-    V,faces = larSkeletons(model,dim=3,grid=True)
+    V,faces = larSkeletons(model,dim=3)
     F0V, F1V, F2V, F3V = faces
     print "AA(LEN)([F0V, F1V, F2V, F3V]) =", AA(LEN)([F0V, F1V, F2V, F3V])
     VIEW(EXPLODE(2,2,2)( MKPOLS((V,F3V[:-1])) ))
@@ -67,7 +67,7 @@ if __name__=="__main__":
     F2V = squares[1]+ outverts
     
     model = (V,F2V)
-    V,faces = larSkeletons(model,dim=2,grid=True)
+    V,faces = larSkeletons(model,dim=2)
     F0V, F1V, F2V= faces
     print "AA(LEN)([F0V, F1V, F2V]) =", AA(LEN)([F0V, F1V, F2V])
     V = model[0]

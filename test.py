@@ -68,9 +68,7 @@ voxels3 = AA(COLOR(WHITE))([T([1,2,3])(s[0])(SKELETON(1)(CUBOID(VECTDIFF([s[1],s
 View(EXPLODE(1.2,1.2,1.2)(voxels0 + voxels1 + voxels2 + voxels3))
 View(STRUCT(voxels0 + voxels1 + voxels2 + voxels3))
 
-boundary = [ [[276,381,-10],[326,381,10]], [[276,381,-10],[276,431,10]], [[276,431,-10],[326,431,10]], [[326,326,-10],[326,431,10]], [[276,381,-10],[326,431,-10]], [[276,381,10],[326,431,10]] ]
-
-voxels = solids + voids0 + voids1 + voids2 + boundary
+voxels = solids + voids0 + voids1 + voids2 
 print "\nvoxels =\n", voxels
 
 #-------------------------------------------------------------------
@@ -103,6 +101,7 @@ VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V[:-6])) ))
 #VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V)) ))
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V)) ))
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
+VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V)) ))
 VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V+F3V[:-6])) ))
 
 
