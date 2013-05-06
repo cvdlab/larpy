@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		C763EA651737897A0060E260 /* pngstack2array3d.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = pngstack2array3d.py; sourceTree = "<group>"; };
+		C763EA661737897A0060E260 /* supercells.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = supercells.py; sourceTree = "<group>"; };
 		C768A413169B1E96006F60D4 /* lar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = lar.py; sourceTree = "<group>"; };
 		C768A41A169BE83B006F60D4 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = test.py; sourceTree = "<group>"; };
 		C768A41B16A27969006F60D4 /* facets.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = facets.py; sourceTree = "<group>"; };
@@ -29,6 +31,8 @@
 			isa = PBXGroup;
 			children = (
 				C768A413169B1E96006F60D4 /* lar.py */,
+				C763EA651737897A0060E260 /* pngstack2array3d.py */,
+				C763EA661737897A0060E260 /* supercells.py */,
 				C768A41D16ABA261006F60D4 /* cochains.py */,
 				C768A41A169BE83B006F60D4 /* test.py */,
 				C768A41B16A27969006F60D4 /* facets.py */,
