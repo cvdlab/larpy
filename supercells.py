@@ -30,10 +30,11 @@ for x in range(nx):
                 else: 
                     value = trunc(random.random() * colors)
                     
-print "\nimage =\n", image
-#image,colors = pngstack2array3d('/Users/paoluzzi/Documents/RICERCA/papers/ACM-SPM-2013/draft/SLICES2/', 430, 433, 2)
 #print "\nimage =\n", image
-#nz,nx,ny = image.shape
+image,colors = pngstack2array3d('/Users/paoluzzi/Documents/RICERCA/papers/ACM-SPM-2013/draft/SLICES2/', 430, 443, 2)
+image = image[:,100:150,100:150]
+print "\nimage =\n", image
+nx,ny,nz = image.shape
 
 #-------------------------------------------------------------
 # LAR building from data
@@ -59,38 +60,41 @@ CV = [cell([x,y,z]) for z in range(nz) for y in range(ny) for x in range(nx)]
 print "\nV =", V
 print "\nCV =", CV
 
-model = V,CV
-VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(model)))
+#model = V,CV
+#VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(model)))
+#
+#xmin = [ind(0,y,z)  for z in range(nz+1) for y in range(ny+1)]
+#xmax = [ind(nx,y,z)  for z in range(nz+1) for y in range(ny+1)]
+#ymin = [ind(x,0,z)  for x in range(nx+1) for z in range(nz+1)]
+#ymax = [ind(x,ny,z)  for x in range(nx+1) for z in range(nz+1)]
+#zmin = [ind(x,y,0)  for x in range(nx+1) for y in range(ny+1)]
+#zmax = [ind(x,y,nz)  for x in range(nx+1) for y in range(ny+1)]
 
-xmin = [ind(0,y,z)  for z in range(nz+1) for y in range(ny+1)]
-xmax = [ind(nx,y,z)  for z in range(nz+1) for y in range(ny+1)]
-ymin = [ind(x,0,z)  for x in range(nx+1) for z in range(nz+1)]
-ymax = [ind(x,ny,z)  for x in range(nx+1) for z in range(nz+1)]
-zmin = [ind(x,y,0)  for x in range(nx+1) for y in range(ny+1)]
-zmax = [ind(x,y,nz)  for x in range(nx+1) for y in range(ny+1)]
+#CV = CV+[xmin,xmax,ymin,ymax,zmin,zmax]
+#model = V,CV
+#VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(model)))
 
-CV = CV+[xmin,xmax,ymin,ymax,zmin,zmax]
-model = V,CV
-VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(model)))
+#V,FV = larFacets(model,dim=3)
+#FV = [facet for facet in FV if len(facet)==4]
+#VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS((V,FV))))
 
-V,FV = larFacets(model,dim=3)
-FV = [facet for facet in FV if len(facet)==4]
-VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS((V,FV))))
-
-CV = CV[:-6]
-model = V,CV
-VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(model)))
+#CV = CV[:-6]
+#model = V,CV
+#VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(model)))
 
 #-------------------------------------------------------------
 # 3D chains extraction (C3 matrix, by rows)
 #-------------------------------------------------------------
 chains3D = [[] for k in range(colors)]
-def k(x,y,z): return x + (nx) * (y + (ny) * (z))
+theColors,k = {},-1
+def addr(x,y,z): return x + (nx) * (y + (ny) * (z))
 for x in range(nx):
     for y in range(ny):
         for z in range(nz):
-            chain = image[x,y,z]
-            chains3D[chain].append(k(x,y,z))
+            if not (image[x,y,z] in theColors):
+                k += 1
+                theColors[image[x,y,z]] = k
+            chains3D[theColors[image[x,y,z]]].append(addr(x,y,z))
 
 print "\nchains3D =\n", chains3D
 
@@ -113,12 +117,12 @@ if colors>=6: VIEW(
 #-------------------------------------------------------------
 # Boundary operator
 #-------------------------------------------------------------
-csrBoundary_3 = larBoundary(FV,CV)
-chain_2 = larBoundaryChain(csrBoundary_3, chains3D[0])
-boundary_2_cells = csrChainToCellList( chain_2 )
-print "\nboundary_2_cells =",boundary_2_cells
-boundary2D = AA(JOIN)([ AA(MK)([V[v] for v in FV[f]]) for f in boundary_2_cells ])
-VIEW(EXPLODE(1.2,1.2,1.2)(boundary2D))
+#csrBoundary_3 = larBoundary(FV,CV)
+#chain_2 = larBoundaryChain(csrBoundary_3, chains3D[0])
+#boundary_2_cells = csrChainToCellList( chain_2 )
+#print "\nboundary_2_cells =",boundary_2_cells
+#boundary2D = AA(JOIN)([ AA(MK)([V[v] for v in FV[f]]) for f in boundary_2_cells ])
+#VIEW(EXPLODE(1.2,1.2,1.2)(boundary2D))
 
 # -------------------------------------------------------------
 # Extraction of vertices of "supercells" (vertex method)
@@ -267,7 +271,8 @@ for v in range(verts):
                     ind(x-1,y-1,z),ind(x-1,y,z),ind(x,y-1,z),ind(x,y,z)]
         }[label]
     supcells = [image[invertIndex(nx,ny,nz)(cell)].tolist() for cell in cells]
-    vsc = [supcell for supcell in range(colors) if supcell in supcells]
+    #vsc = [supcell for supcell in range(colors) if supcell in supcells]
+    vsc = set(supcells)
     if vtype == 3: theVSC = vsc
     elif vtype==2 and len(vsc)==1: theVSC = []
     elif vtype==2 and len(vsc)==2: theVSC = vsc
@@ -278,6 +283,7 @@ for v in range(verts):
     elif vtype==1 and len(vsc)==3: theVSC = vsc
     elif vtype==1 and len(vsc)==4: theVSC = vsc
     elif vtype==0 and len(vsc)==1: theVSC = []
+    elif vtype==0 and len(vsc)==2 and PROD(count(supcells)(vsc))%2==1: theVSC = vsc
     elif vtype==0 and vertexTest(supcells,vsc): theVSC = vsc
     else: theVSC = []
     
@@ -325,21 +331,21 @@ print "\nVSC =",VSC
 #-------------------------------------------------------------
 # Building of LAR "supercomplex"
 #-------------------------------------------------------------
-VC = [k for k in range(len(VSC)) if VSC[k]!=[]]
-VIEW(MKPOL([V,AA(LIST)(VC),None]))
+#VC = [k for k in range(len(VSC)) if VSC[k]!=[]]
+#VIEW(MKPOL([V,AA(LIST)(VC),None]))
 
-model = V,VC
-VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
+#model = V,VC
+#VIEW(EXPLODE(1.5,1.5,1.5)(MKPOLS(model)))
 
 #csrSCV = csrCreate(SCV,shape=(colors,verts))
 
-SCV = SCV+[xmin,xmax,ymin,ymax,zmin,zmax]
-model = V,SCV
-V,faces = larSkeletons(model,dim=3)
-F0V, F1V, F2V, F3V = faces
-VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V[:-6])) ))
-VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V)) ))
-VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
+#SCV = SCV+[xmin,xmax,ymin,ymax,zmin,zmax]
+#model = V,SCV
+#V,faces = larSkeletons(model,dim=3)
+#F0V, F1V, F2V, F3V = faces
+#VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V[:-6])) ))
+#VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V)) ))
+#VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
 #VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V+F3V[:-6])) ))
 
-csrCreate(VSC)
+#csrCreate(VSC)
