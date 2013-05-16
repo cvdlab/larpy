@@ -59,8 +59,8 @@ nx,ny,nz = image.shape
 # ------------------------------------------------------------
 
 colors = 2
-image,colors = pngstack2array3d('SLICES2/', 430, 432, colors)
-image = image[:,:150,:150]
+image,colors = pngstack2array3d('SLICES2/', 430, 480, colors)
+image = image[:,:50,:50]
 
 nx,ny,nz = image.shape
 
@@ -121,12 +121,12 @@ VIEW(
 # ------------------------------------------------------------
 # complesso di catene di campo costante
 # ------------------------------------------------------------
+"""
 csrSCC = csrCreate(chains3D)
 #csrToMatrixRepresentation(csrSCC)[0]
 csrCV = csrCreate(CV)
 
 SCV = matrixProduct(csrSCC,csrCV)
-"""
 for k in range(colors):
     print csrToMatrixRepresentation(SCV)[k]
 
@@ -200,10 +200,13 @@ print "visualizza"
 
 mycolors = [RED,GREEN,BLUE,CYAN,MAGENTA,YELLOW]
 
-VIEW(COLOR(BLUE)(STRUCT(sup_cell_boundary[0])))
+VIEW(COLOR(BLUE)(S([1,2,3])([-1,-1,-1])(STRUCT(sup_cell_boundary[0]))))
+
+"""
 VIEW(COLOR(WHITE)(STRUCT(sup_cell_boundary[1])))
 
 VIEW(STRUCT(
 	[COLOR(mycolors[k])(supcell) for k in range(colors) for supcell in sup_cell_boundary[k]  if sup_cell_boundary[k] != []]
 	# + [supnodes]
 ))
+"""

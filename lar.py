@@ -161,10 +161,8 @@ def format(cmat,shape="csr"):
 
 #------------------------------------------------------------------
 def cooCreateFromBrc(ListOfListOfInt):
-    print "timeCOO=",time()
     COOm = [[k,col,1] for k,row in enumerate(ListOfListOfInt)
                    for col in row ]
-    print "timeCOO=",time()
     return COOm
 
 if __name__ == "__main__" and False:
@@ -207,7 +205,6 @@ def csrCreate(BRCm,shape=(0,0)):
 def csrCreate(BRCm,shape=(0,0)):
     if shape == (0,0):
         out = csrCreateFromCoo(cooCreateFromBrc(BRCm))
-        print "fine csrCreate"
         return out
     else:
         CSRm = scipy.sparse.csr_matrix(shape)
@@ -406,6 +403,7 @@ if __name__ == "__main__" and False:
     print "\ncsrMaxFilter(csrFE) =\n", csrToMatrixRepresentation(CSRm)
 
 #------------------------------------------------------------------
+"""
 def csrBinFilter(CSRm):
     # can be done in parallel (by rows)
     coo = CSRm.tocoo()
@@ -419,12 +417,23 @@ def csrBinFilter(CSRm):
     i, j, data = TRANS(triples)
     CSRm = scipy.sparse.coo_matrix((data,(i,j)),CSRm.shape).tocsr()
     return CSRm
+"""
+#------------------------------------------------------------------
+def csrBinFilter(CSRm):
+    # can be done in parallel (by rows)
+    inputShape = CSRm.shape
+    coo = CSRm.tocoo()
+    for k in range(len(coo.data)):
+        if coo.data[k] % 2 == 1: coo.data[k] = 1
+        else: coo.data[k] = 0
+    mtx = coo_matrix((coo.data, (coo.row, coo.col)), shape=inputShape)
+    out = mtx.tocsr()
+    return out
 
 if __name__ == "__main__" and False:
     print "\n>>> csrBinFilter"
     CSRm = csrBinFilter(matrixProduct(csrFV, csrTranspose(csrEV)).T).T
     print "\nccsrBinFilter(csrFE) =\n", csrToMatrixRepresentation(CSRm)
-
 
 #------------------------------------------------------------------
 def csrPredFilter(CSRm, pred):
@@ -529,17 +538,12 @@ if __name__ == "__main__" and False:
 def larBoundary(EV,FV):
     e = len(EV)
     f = len(FV)
-    print "\ninizio CAT(FV)"
     #v = max(AA(max)(FV))+1
     v = FV[-1][-1]+1  # at least with images ...
-    print "\ninizio csrCreate"
     csrFV = csrCreate(FV)#,shape=(f,v))
     csrEV = csrCreate(EV)#,shape=(e,v))
-    print "\ncsrEV",csrEV
     facetLengths = [csrCell.getnnz() for csrCell in csrEV]
-    print "\nfacetLengths",facetLengths
     temp = larCellIncidences(csrEV,csrFV)
-    print "\ntemp",temp
     csrBoundary_2 = csrBoundaryFilter(temp,facetLengths)
     return csrBoundary_2
 
@@ -565,8 +569,6 @@ def larBoundaryChain(csrBoundaryMat,brcCellList):
     i = brcCellList
     j = scipy.zeros(len(brcCellList))
     csrChain = coo_matrix((data,(i,j)),shape=(m,1)).tocsr()
-    print "\ncsrBoundaryMat.shape =",csrBoundaryMat.shape
-    print "\ncsrChain.shape =",csrChain.shape
     csrmat = matrixProduct(csrBoundaryMat,csrChain)
     out = csrBinFilter(csrmat)
     return out

@@ -22,6 +22,7 @@
 		C775125B16BBAA640036018F /* voxels2lar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = voxels2lar.py; sourceTree = "<group>"; };
 		C77A34111743CAF7004D61C4 /* image3d.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = image3d.py; sourceTree = "<group>"; };
 		C77A34121743CBDE004D61C4 /* SLICES2.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = SLICES2.zip; sourceTree = "<group>"; };
+		C79AD48217459808007EA9B8 /* femtec2013.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = femtec2013.py; sourceTree = "<group>"; };
 		C79C244216D0A0A5000C9733 /* blockimages.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = blockimages.md; sourceTree = "<group>"; };
 		C7A377FC16BD23B4005A3881 /* image2blocks.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = image2blocks.py; sourceTree = "<group>"; };
 		C7CD3E6416E7C21300FAC728 /* matrixutil_accel.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = matrixutil_accel.py; sourceTree = "<group>"; };
@@ -33,6 +34,7 @@
 			isa = PBXGroup;
 			children = (
 				C768A413169B1E96006F60D4 /* lar.py */,
+				C79AD48217459808007EA9B8 /* femtec2013.py */,
 				C77A34111743CAF7004D61C4 /* image3d.py */,
 				C77A34121743CBDE004D61C4 /* SLICES2.zip */,
 				C763EA651737897A0060E260 /* pngstack2array3d.py */,
