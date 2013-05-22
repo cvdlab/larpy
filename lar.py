@@ -495,7 +495,8 @@ if __name__ == "__main__" and False:
 
 #------------------------------------------------------------------
 def csrChainToCellList(CSRm):
-    ListOfInt = CSRm.tocoo().row.tolist()
+    coo = CSRm.tocoo()
+    ListOfInt = [k for k in coo.row if coo.data[k] == 1]
     return ListOfInt
 
 if __name__ == "__main__" and False:
@@ -639,6 +640,7 @@ if __name__ == "__main__" and False:
     cubes = INSL(larProduct)([mod_0,mod_1,mod_0]) # ==
     cubes = larProduct([squares,mod_0])
     VIEW(EXPLODE(1.2,1.2,1.2)(MKPOLS(cubes)))
+        
     
     line = [[0.],[1.]], [[0,1]]
     cube = INSL(larProduct)([line,line,line])
@@ -754,7 +756,13 @@ if __name__ == "__main__" and False:
          [1.,1.],[2.,1.]]
     FV = [[0,1,6,7],[0,2,4,6],[4,5,6,7],[1,3,5,7],[2,3,4,5],
           [0,1,2,3]]
-    EV = larFacets((V,FV),dim=2)
+    _,EV = larFacets((V,FV),dim=2)
+    print "\nEV =",EV
+
+    FV = [[0,1,3],[1,2,4],[2,4,5],[3,4,6],[4,6,7],[5,7,8], # full
+          [1,3,4],[4,5,7], # empty
+          [0,1,2],[6,7,8],[0,3,6],[2,5,8]] # exterior
+    _,EV = larFacets((V,FV),dim=2)
     print "\nEV =",EV
 
 #------------------------------------------------------------------
