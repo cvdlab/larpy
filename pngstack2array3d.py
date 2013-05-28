@@ -77,26 +77,9 @@ def pngstack2array3d(path, MIN_SLICE, MAX_SLICE, colors):
 
 	# return a scipy ndarray 
 	# -------------------------------------------------------------------------
-	return image3d,colors
+	return image3d,colors,centroids
 	
 	
-
-if __name__ == "__main__":
-	
-	# -----------------------------------------------------------------------------
-	# import arguments from command line ------------------------------------------
-	# -----------------------------------------------------------------------------
-	if sys.argv[1] != 0: 
-		IMAGE_PATH = sys.argv[1]
-	else: IMAGE_PATH = './'
-	if sys.argv[2] and sys.argv[3] != 0:
-		MIN_SLICE, MAX_SLICE = int(sys.argv[2]),int(sys.argv[3])
-	else: MIN_SLICE, MAX_SLICE = '00','01'
-	if sys.argv[4] != 0: 
-		colors = int(sys.argv[4])
-	else: colors = 2
-	
-	pngstack2array3d(IMAGE_PATH, MIN_SLICE, MAX_SLICE,colors)
 	
 """
 == Conversione di un archivio jpeg in stack di png

@@ -381,17 +381,19 @@ if __name__ == "__main__" and False:
 """
 def csrBoundaryFilter(CSRm, facetLengths):
     coo = CSRm.tocoo()
+    maxs = [max(CSRm[k]) for k in range(CSRm.shape[0])]
     triples = [[row,col,1] for row,col,val in zip(coo.row,coo.col,coo.data)
-               if val==facetLengths[row]]
+               if val==maxs[row]]
     CSRm = csrCreateFromCoo(triples)
     return CSRm
 """
 #------------------------------------------------------------------
 def csrBoundaryFilter(CSRm, facetLengths):
+    maxs = [max(CSRm[k].data) for k in range(CSRm.shape[0])]
     inputShape = CSRm.shape
     coo = CSRm.tocoo()
     for k in range(len(coo.data)):
-        if coo.data[k]==facetLengths[coo.row[k]]: coo.data[k] = 1
+        if coo.data[k]==maxs[coo.row[k]]: coo.data[k] = 1
         else: coo.data[k] = 0
     mtx = coo_matrix((coo.data, (coo.row, coo.col)), shape=inputShape)
     out = mtx.tocsr()
@@ -426,9 +428,10 @@ def csrBinFilter(CSRm):
     for k in range(len(coo.data)):
         if coo.data[k] % 2 == 1: coo.data[k] = 1
         else: coo.data[k] = 0
-    mtx = coo_matrix((coo.data, (coo.row, coo.col)), shape=inputShape)
-    out = mtx.tocsr()
-    return out
+    #mtx = coo_matrix((coo.data, (coo.row, coo.col)), shape=inputShape)
+    #out = mtx.tocsr()
+    #return out
+    return coo.tocsr()
 
 if __name__ == "__main__" and False:
     print "\n>>> csrBinFilter"
@@ -496,7 +499,7 @@ if __name__ == "__main__" and False:
 #------------------------------------------------------------------
 def csrChainToCellList(CSRm):
     coo = CSRm.tocoo()
-    ListOfInt = [k for k in coo.row if coo.data[k] == 1]
+    ListOfInt = [theRow for k,theRow in enumerate(coo.row) if coo.data[k]==1]
     return ListOfInt
 
 if __name__ == "__main__" and False:
@@ -539,8 +542,8 @@ if __name__ == "__main__" and False:
 def larBoundary(EV,FV):
     e = len(EV)
     f = len(FV)
-    #v = max(AA(max)(FV))+1
-    v = FV[-1][-1]+1  # at least with images ...
+    v = max(AA(max)(FV))+1
+    #v = FV[-1][-1]+1  # at least with images ...
     csrFV = csrCreate(FV)#,shape=(f,v))
     csrEV = csrCreate(EV)#,shape=(e,v))
     facetLengths = [csrCell.getnnz() for csrCell in csrEV]
@@ -927,6 +930,31 @@ if __name__=="__main__":
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V[:-4])) ))
 
+    boundary_2 = larBoundary(F1V,F2V[:-4])
+    chain_1 = larBoundaryChain(boundary_2,range(len(F2V[:-4])))
+    boundary_edges = csrChainToCellList(chain_1)
+    edges = [F1V[e] for e in boundary_edges]
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,edges)) ))
+
+
+[
+ [0,0,0],
+ [5,0,0],
+ [9,0,0],
+ [13,0,0],
+ [5,3,0],
+ [8,3,0],
+ [9,3,0],
+ [13,3,0],
+ [0,10,0],
+ [5,10,0],
+ [8,10,0],
+ [9,10,0],
+ [13,10,0],
+ [0,12,0],
+ [9,12,0],
+ [13,12,0]]
+
 #-------------------------------------------------------------------
 # 3D images to lar model
 
@@ -1030,8 +1058,14 @@ if __name__=="__main__":
     F0V, F1V, F2V, F3V = faces
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F3V[:-6])) ))
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F2V)) ))
-    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))  
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F1V)) ))
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V+F3V[:-6])) ))
+
+    boundary_3 = larBoundary(F2V,F3V[:-6])
+    chain_2 = larBoundaryChain(boundary_3,range(len(F3V[:-6])))
+    boundary_faces = csrChainToCellList(chain_2)
+    faces = [F2V[f] for f in boundary_faces]
+    VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,faces)) ))
 
 
 #------------------------------------------------------------------

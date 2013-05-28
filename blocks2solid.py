@@ -47,9 +47,6 @@ if __name__ == "__main__":
     VIEW(EXPLODE(1.2,1.2,1.2)( MKPOLS((V,F0V+F1V+F2V[:-4])) ))
 
 
-
-
-
     csrBoundary_2 = larBoundary(F1V,F2V)
     print "\ncsrBoundary_2.shape =", csrBoundary_2.shape
     chain_1 = larBoundaryChain(csrBoundary_2,range(len(solids)))
